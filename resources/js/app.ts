@@ -1,0 +1,28 @@
+import { createInertiaApp } from '@inertiajs/vue3';
+import { initializeTheme } from '@/composables/useAppearance';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { initializeFlashToast } from '@/lib/flashToast';
+
+const appName = import.meta.env.VITE_APP_NAME || 'UP1';
+
+createInertiaApp({
+    title: (title) => (title ? `${title} - ${appName}` : appName),
+    layout: (name) => {
+        switch (true) {
+            case name.startsWith('Admin/Login'):
+            case name.startsWith('Business/Login'):
+                return null;
+            default:
+                return AppLayout;
+        }
+    },
+    progress: {
+        color: '#6366F1',
+    },
+});
+
+// This will set light / dark mode on page load...
+initializeTheme();
+
+// This will listen for flash toast data from the server...
+initializeFlashToast();
