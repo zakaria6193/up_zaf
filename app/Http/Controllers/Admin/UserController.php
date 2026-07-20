@@ -146,9 +146,10 @@ class UserController extends Controller
     {
         // Check if user has businesses
         if ($user->businesses()->count() > 0) {
-            return back()->withErrors([
-                'user' => 'Cannot delete user with associated businesses. Please reassign or delete businesses first.',
-            ]);
+            return back()->with(
+                'error',
+                'Impossible de supprimer cet utilisateur : il possède encore des entreprises. Réassignez ou supprimez d’abord ses entreprises.'
+            );
         }
 
         $user->delete();

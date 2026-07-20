@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import {
     Dialog,
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { store } from '@/actions/App/Http/Controllers/Admin/BusinessController';
 import { ChevronLeft, ChevronRight, Search, Upload, X } from 'lucide-vue-next';
+import LocationPicker from '@/components/LocationPicker.vue';
 
 const props = defineProps<{
     businessUsers: Array<{ id: number; name: string; email: string }>;
@@ -36,15 +37,8 @@ const form = ref({
 });
 
 const logoPreview = ref<string | null>(null);
-
 const processing = ref(false);
-const mapContainer = ref<HTMLDivElement | null>(null);
-const mapInput = ref<HTMLInputElement | null>(null);
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-let map: google.maps.Map | null = null;
-let marker: google.maps.Marker | null = null;
-let autocomplete: google.maps.places.Autocomplete | null = null;
+const locationPicker = ref<{ refresh: () => Promise<void> } | null>(null);
 
 // User search
 const userSearch = ref('');
@@ -98,115 +92,16 @@ const canGoNext = computed(() => {
     return true;
 });
 
-const initGoogleMaps = async () => {
-    if (!window.google || !mapContainer.value) {
-        return;
-    }
-
-    // Wait for input element to be available
-    await nextTick();
-
-    const inputElement = mapInput.value;
-    if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
-        console.warn('Map input element not found or invalid');
-        return;
-    }
-
-    // Initialize autocomplete on input
-    autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
-        types: ['establishment', 'geocode'],
-        componentRestrictions: { country: 'ma' },
-    });
-
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete!.getPlace();
-
-        if (place.geometry && place.geometry.location) {
-            form.value.address = place.formatted_address || '';
-            form.value.lat = place.geometry.location.lat();
-            form.value.lng = place.geometry.location.lng();
-
-            // Update map and marker
-            if (map && marker) {
-                map.setCenter(place.geometry.location);
-                map.setZoom(15);
-                marker.setPosition(place.geometry.location);
-                marker.setVisible(true);
-            }
-        }
-    });
-
-    // Initialize map
-    const defaultCenter = { lat: 33.5731, lng: -7.5898 }; // Casablanca
-    map = new google.maps.Map(mapContainer.value, {
-        center: defaultCenter,
-        zoom: 11,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-    });
-
-    // Initialize marker
-    marker = new google.maps.Marker({
-        map: map,
-        draggable: true,
-        visible: false,
-    });
-
-    // Update form when marker is dragged
-    marker.addListener('dragend', () => {
-        const position = marker!.getPosition();
-        if (position) {
-            form.value.lat = position.lat();
-            form.value.lng = position.lng();
-
-            // Reverse geocode to get address
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: position }, (results, status) => {
-                if (status === 'OK' && results && results[0]) {
-                    form.value.address = results[0].formatted_address;
-                }
-            });
-        }
-    });
-
-    // Allow clicking on map to place marker
-    map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-            form.value.lat = e.latLng.lat();
-            form.value.lng = e.latLng.lng();
-            marker!.setPosition(e.latLng);
-            marker!.setVisible(true);
-
-            // Reverse geocode
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: e.latLng }, (results, status) => {
-                if (status === 'OK' && results && results[0]) {
-                    form.value.address = results[0].formatted_address;
-                }
-            });
-        }
-    });
-};
-
-// Load Google Maps script when modal opens
-onMounted(() => {
-    if (googleMapsApiKey && !window.google) {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async`;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
+watch(currentStep, async (step) => {
+    if (step === 2) {
+        await nextTick();
+        await locationPicker.value?.refresh();
     }
 });
 
 const nextStep = () => {
     if (currentStep.value < totalSteps && canGoNext.value) {
         currentStep.value++;
-        if (currentStep.value === 2) {
-            // Initialize map when step 2 is shown
-            nextTick(() => initGoogleMaps());
-        }
     }
 };
 
@@ -266,7 +161,6 @@ const resetForm = () => {
     };
     userSearch.value = '';
     logoPreview.value = null;
-    if (marker) marker.setVisible(false);
 };
 </script>
 
@@ -399,37 +293,15 @@ const resetForm = () => {
                     </div>
                 </div>
 
-                <!-- Step 2: Location with Google Maps -->
+                <!-- Step 2: Location -->
                 <div v-if="currentStep === 2" class="space-y-4">
-                    <div class="space-y-2">
-                        <Label for="address">Adresse</Label>
-                        <Input
-                            id="address"
-                            ref="mapInput"
-                            v-model="form.address"
-                            type="text"
-                            placeholder="Rechercher sur Google Places..."
-                        />
-                        <p class="text-xs text-muted-foreground">
-                            Recherchez une adresse ou cliquez sur la carte pour placer le marqueur
-                        </p>
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label>Carte</Label>
-                        <div
-                            ref="mapContainer"
-                            class="h-[400px] w-full rounded-lg border bg-muted"
-                        />
-                        <p class="text-xs text-muted-foreground">
-                            Cliquez sur la carte ou déplacez le marqueur pour définir l'emplacement exact
-                        </p>
-                    </div>
-
-                    <div v-if="form.lat && form.lng" class="rounded-lg border bg-muted/30 p-3">
-                        <p class="text-sm font-medium">Coordonnées sélectionnées:</p>
-                        <p class="text-sm text-muted-foreground">{{ form.lat }}, {{ form.lng }}</p>
-                    </div>
+                    <LocationPicker
+                        ref="locationPicker"
+                        v-model:address="form.address"
+                        v-model:lat="form.lat"
+                        v-model:lng="form.lng"
+                        :active="currentStep === 2"
+                    />
                 </div>
 
                 <!-- Step 3: Branding -->

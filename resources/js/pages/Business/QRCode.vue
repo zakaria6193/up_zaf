@@ -121,7 +121,6 @@ const printQR = () => {
             <BusinessSwitcher
                 :businesses="userBusinesses"
                 :current-nanoid="business.nanoid"
-                route="business.qr-code"
                 label="Viewing:"
             />
         </div>

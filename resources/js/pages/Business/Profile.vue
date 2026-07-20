@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, computed, nextTick, onMounted } from 'vue';
+import { ref, nextTick } from 'vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, X, MapPin, Save, Trash2 } from 'lucide-vue-next';
+import { Upload, X, Save, Trash2 } from 'lucide-vue-next';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
+import LocationPicker from '@/components/LocationPicker.vue';
+import { update, deleteLogo as deleteLogoRoute } from '@/actions/App/Http/Controllers/Business/ProfileController';
 
 const props = defineProps<{
     business: {
@@ -31,14 +33,14 @@ const props = defineProps<{
         nanoid: string;
         name: string;
     }>;
-    googleMapsApiKey: string;
+    googleMapsApiKey?: string;
 }>();
 
 const form = useForm({
     name: props.business.name,
-    address: props.business.address,
-    lat: props.business.lat,
-    lng: props.business.lng,
+    address: props.business.address || '',
+    lat: props.business.lat !== null ? Number(props.business.lat) : null,
+    lng: props.business.lng !== null ? Number(props.business.lng) : null,
     color: props.business.color,
     seo_title: props.business.seo_title,
     seo_description: props.business.seo_description,
@@ -48,12 +50,8 @@ const form = useForm({
 
 const logoPreview = ref<string | null>(props.business.logo);
 const fileInput = ref<HTMLInputElement | null>(null);
-const mapContainer = ref<HTMLDivElement | null>(null);
-const mapInput = ref<HTMLInputElement | null>(null);
-
-let map: google.maps.Map | null = null;
-let marker: google.maps.Marker | null = null;
-let autocomplete: google.maps.places.Autocomplete | null = null;
+const locationPicker = ref<{ refresh: () => Promise<void> } | null>(null);
+const activeTab = ref('basic');
 
 // Handle logo file selection
 const handleLogoChange = (event: Event) => {
@@ -87,7 +85,7 @@ const removeLogo = () => {
 // Delete logo from server
 const deleteLogo = () => {
     if (confirm('Are you sure you want to delete the logo?')) {
-        router.delete(route('business.profile.deleteLogo', props.business.nanoid), {
+        router.delete(deleteLogoRoute.url(props.business.nanoid), {
             preserveScroll: true,
             onSuccess: () => {
                 logoPreview.value = null;
@@ -96,108 +94,12 @@ const deleteLogo = () => {
     }
 };
 
-// Initialize Google Maps
-const initGoogleMaps = async () => {
-    if (!window.google || !mapContainer.value) return;
-
-    await nextTick();
-
-    const inputElement = mapInput.value;
-    if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
-        console.warn('Map input element not found or invalid');
-        return;
-    }
-
-    // Initialize autocomplete
-    autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
-        types: ['establishment', 'geocode'],
-        componentRestrictions: { country: 'ma' },
-    });
-
-    // Initialize map
-    const defaultCenter = {
-        lat: props.business.lat ?? 33.5731,
-        lng: props.business.lng ?? -7.5898,
-    };
-
-    map = new google.maps.Map(mapContainer.value, {
-        center: defaultCenter,
-        zoom: props.business.lat && props.business.lng ? 15 : 11,
-    });
-
-    // Initialize marker
-    marker = new google.maps.Marker({
-        map: map,
-        position: defaultCenter,
-        draggable: true,
-        visible: props.business.lat !== null && props.business.lng !== null,
-    });
-
-    // Listen to autocomplete place selection
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete!.getPlace();
-
-        if (!place.geometry || !place.geometry.location) {
-            return;
-        }
-
-        const location = place.geometry.location;
-
-        // Update form values
-        form.address = place.formatted_address || '';
-        form.lat = location.lat();
-        form.lng = location.lng();
-
-        // Update map and marker
-        map!.setCenter(location);
-        map!.setZoom(15);
-        marker!.setPosition(location);
-        marker!.setVisible(true);
-    });
-
-    // Listen to marker drag
-    marker.addListener('dragend', async (event: google.maps.MapMouseEvent) => {
-        const position = event.latLng;
-        if (!position) return;
-
-        form.lat = position.lat();
-        form.lng = position.lng();
-
-        // Reverse geocode to get address
-        const geocoder = new google.maps.Geocoder();
-        const response = await geocoder.geocode({ location: position });
-
-        if (response.results[0]) {
-            form.address = response.results[0].formatted_address;
-            if (mapInput.value) {
-                mapInput.value.value = form.address;
-            }
-        }
-    });
-};
-
-// Load Google Maps script
-onMounted(() => {
-    if (props.googleMapsApiKey && !window.google) {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${props.googleMapsApiKey}&libraries=places&loading=async`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-            initGoogleMaps();
-        };
-        document.head.appendChild(script);
-    } else if (window.google) {
-        initGoogleMaps();
-    }
-});
-
 // Submit form
 const submit = () => {
-    form.post(route('business.profile.update', props.business.nanoid), {
+    form.put(update.url(props.business.nanoid), {
+        forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
-            // Reset logo file input but keep preview
             form.logo = null;
             if (fileInput.value) {
                 fileInput.value.value = '';
@@ -206,10 +108,11 @@ const submit = () => {
     });
 };
 
-// Handle tab change - initialize map when Location tab is opened
-const handleTabChange = (value: string) => {
+// Handle tab change - refresh map when Location tab is opened
+const handleTabChange = (value: string | number) => {
+    activeTab.value = String(value);
     if (value === 'location') {
-        nextTick(() => initGoogleMaps());
+        nextTick(() => locationPicker.value?.refresh());
     }
 };
 </script>
@@ -231,13 +134,12 @@ const handleTabChange = (value: string) => {
             <BusinessSwitcher
                 :businesses="userBusinesses"
                 :current-nanoid="business.nanoid"
-                route="business.profile"
                 label="Editing:"
             />
         </div>
 
         <!-- Tabs -->
-        <Tabs default-value="basic" @update:model-value="handleTabChange">
+        <Tabs v-model="activeTab" @update:model-value="handleTabChange">
             <TabsList class="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="location">Location</TabsTrigger>
@@ -303,25 +205,14 @@ const handleTabChange = (value: string) => {
                         <CardDescription>Set your business location</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
-                        <div class="space-y-2">
-                            <Label for="address">Address</Label>
-                            <Input
-                                id="address"
-                                ref="mapInput"
-                                v-model="form.address"
-                                placeholder="Search for your business address..."
-                                :class="{ 'border-red-500': form.errors.address }"
-                            />
-                            <p v-if="form.errors.address" class="text-sm text-red-600">{{ form.errors.address }}</p>
-                        </div>
-
-                        <!-- Map Container -->
-                        <div ref="mapContainer" class="h-96 rounded-lg border border-gray-300 bg-gray-100"></div>
-
-                        <p class="text-sm text-muted-foreground">
-                            <MapPin class="inline h-4 w-4" />
-                            Search for your business or drag the marker to set the exact location
-                        </p>
+                        <LocationPicker
+                            ref="locationPicker"
+                            v-model:address="form.address"
+                            v-model:lat="form.lat"
+                            v-model:lng="form.lng"
+                            :active="activeTab === 'location'"
+                        />
+                        <p v-if="form.errors.address" class="text-sm text-red-600">{{ form.errors.address }}</p>
 
                         <div class="flex items-center gap-3 pt-4">
                             <Button @click="submit" :disabled="form.processing">

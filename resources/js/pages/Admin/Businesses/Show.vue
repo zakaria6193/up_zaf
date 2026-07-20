@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Edit, ExternalLink, QrCode, Trash2, Copy, Check } from 'lucide-vue-next';
 import { edit, destroy, index } from '@/actions/App/Http/Controllers/Admin/BusinessController';
+import { index as linksIndex } from '@/actions/App/Http/Controllers/Admin/BusinessLinkController';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
 import { ref, onMounted, watch } from 'vue';
 
@@ -310,7 +311,7 @@ watch(activeTab, (newTab) => {
                                 <CardDescription>Liens publics pour cette entreprise</CardDescription>
                             </div>
                             <Button as-child size="sm" variant="outline">
-                                <Link :href="`/adminos/businesses/${business.nanoid}/links`">
+                                <Link :href="linksIndex.url(business.nanoid)">
                                     Gérer les liens
                                 </Link>
                             </Button>

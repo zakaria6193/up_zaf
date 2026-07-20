@@ -53,9 +53,15 @@ class ReportController extends Controller
             ]);
 
         // Businesses by creation month (last 6 months)
+        $monthExpression = match (DB::connection()->getDriverName()) {
+            'sqlite' => "strftime('%Y-%m', created_at)",
+            'pgsql' => "to_char(created_at, 'YYYY-MM')",
+            default => "DATE_FORMAT(created_at, '%Y-%m')",
+        };
+
         $businessesByMonth = Business::query()
             ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
+                DB::raw("{$monthExpression} as month"),
                 DB::raw('COUNT(*) as count')
             )
             ->where('created_at', '>=', now()->subMonths(6))
@@ -70,7 +76,7 @@ class ReportController extends Controller
         // Users with most businesses
         $topUsers = BusinessUser::query()
             ->withCount('businesses')
-            ->having('businesses_count', '>', 0)
+            ->whereHas('businesses')
             ->orderBy('businesses_count', 'desc')
             ->limit(5)
             ->get()

@@ -14,6 +14,7 @@ const form = useForm({
     phone: '',
     password: '',
     remember: false,
+    login_type: 'business',
 });
 
 const submit = () => {
@@ -34,7 +35,7 @@ const submit = () => {
                 </div>
                 <CardTitle class="text-2xl font-bold">Connexion Entreprise</CardTitle>
                 <CardDescription>
-                    Entrez votre numéro de téléphone et votre mot de passe
+                    Entrez votre e-mail ou numéro de téléphone et votre mot de passe
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -44,18 +45,19 @@ const submit = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="phone">Numéro de téléphone mobile</Label>
+                        <Label for="phone">E-mail ou téléphone</Label>
                         <Input
                             id="phone"
                             v-model="form.phone"
-                            type="tel"
-                            placeholder="0612345678"
-                            :class="{ 'border-destructive': form.errors.phone }"
+                            type="text"
+                            autocomplete="username"
+                            placeholder="mohamed@example.com ou +212600111111"
+                            :class="{ 'border-destructive': form.errors.phone || form.errors.email }"
                             required
                             autofocus
                         />
-                        <p v-if="form.errors.phone" class="text-sm text-destructive">
-                            {{ form.errors.phone }}
+                        <p v-if="form.errors.phone || form.errors.email" class="text-sm text-destructive">
+                            {{ form.errors.phone || form.errors.email }}
                         </p>
                     </div>
 
@@ -65,6 +67,7 @@ const submit = () => {
                             id="password"
                             v-model="form.password"
                             type="password"
+                            autocomplete="current-password"
                             :class="{ 'border-destructive': form.errors.password }"
                             required
                         />

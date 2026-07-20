@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Lock } from 'lucide-vue-next';
+import { updatePassword as updatePasswordRoute } from '@/actions/App/Http/Controllers/Business/SettingsController';
 
 const props = defineProps<{
     user: {
@@ -20,7 +21,7 @@ const passwordForm = useForm({
 });
 
 const updatePassword = () => {
-    passwordForm.put(route('business.settings.password'), {
+    passwordForm.put(updatePasswordRoute.url(), {
         preserveScroll: true,
         onSuccess: () => {
             passwordForm.reset();

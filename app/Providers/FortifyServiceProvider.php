@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\BusinessUser;
 use App\Models\User;
 use App\Responses\LoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -49,17 +50,22 @@ class FortifyServiceProvider extends ServiceProvider
                 || $request->is('adminos/*')
                 || $request->is('adminos');
 
+            $login = (string) $request->input('email', '');
+
             if ($isAdminLogin) {
                 // Admin login - check users table
-                $user = User::where('email', $request->email)->first();
+                $user = User::where('email', $login)->first();
 
                 if ($user && Hash::check($request->password, $user->password)) {
                     return $user;
                 }
             } else {
-                // Business login - check business_users table
-                $user = \App\Models\BusinessUser::where('email', $request->email)
-                    ->orWhere('phone', $request->email)
+                // Business login - email or phone against business_users
+                $user = BusinessUser::query()
+                    ->where(function ($query) use ($login) {
+                        $query->where('email', $login)
+                            ->orWhere('phone', $login);
+                    })
                     ->first();
 
                 if ($user && Hash::check($request->password, $user->password)) {

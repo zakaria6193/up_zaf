@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,12 +19,23 @@ class MenuItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'category_id' => \App\Models\MenuCategory::factory(),
+            'category_id' => MenuCategory::factory(),
             'name' => fake()->words(3, true),
             'description' => fake()->sentence(),
             'price' => fake()->randomFloat(2, 10, 200),
             'order' => 0,
+            'is_active' => true,
         ];
+    }
+
+    /**
+     * Indicate that the item is inactive / unavailable.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
     }
 
     /**

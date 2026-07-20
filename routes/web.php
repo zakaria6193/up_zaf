@@ -2,18 +2,24 @@
 
 use App\Http\Controllers\Admin\BusinessController;
 use App\Http\Controllers\Admin\BusinessLinkController;
+use App\Http\Controllers\Admin\LoginController as AdminLoginController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Business\DashboardController;
+use App\Http\Controllers\Business\LinkController;
+use App\Http\Controllers\Business\ProfileController;
+use App\Http\Controllers\Business\QRCodeController;
 use App\Http\Controllers\PublicBusinessController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // Business Owner (User) Routes - Root domain
 Route::get('/', function () {
     if (auth()->check()) {
         // Check if user is an admin (from users table)
-        if (auth()->user() instanceof \App\Models\User) {
+        if (auth()->user() instanceof User) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -30,34 +36,35 @@ Route::get('login', function () {
 })->middleware('guest')->name('login');
 
 Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->group(function () {
-    Route::get('dashboard', [\App\Http\Controllers\Business\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('profile', [\App\Http\Controllers\Business\ProfileController::class, 'index'])->name('profile');
-    Route::put('profile/{nanoid}', [\App\Http\Controllers\Business\ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('profile/{nanoid}/logo', [\App\Http\Controllers\Business\ProfileController::class, 'deleteLogo'])->name('profile.deleteLogo');
-    Route::get('links', [\App\Http\Controllers\Business\LinkController::class, 'index'])->name('links');
-    Route::post('links/{nanoid}', [\App\Http\Controllers\Business\LinkController::class, 'store'])->name('links.store');
-    Route::put('links/{nanoid}/{link}', [\App\Http\Controllers\Business\LinkController::class, 'update'])->name('links.update');
-    Route::delete('links/{nanoid}/{link}', [\App\Http\Controllers\Business\LinkController::class, 'destroy'])->name('links.destroy');
-    Route::post('links/{nanoid}/reorder', [\App\Http\Controllers\Business\LinkController::class, 'reorder'])->name('links.reorder');
-    Route::get('menu', [\App\Http\Controllers\Business\MenuController::class, 'index'])->name('menu');
-    Route::post('menu/{nanoid}/categories', [\App\Http\Controllers\Business\MenuController::class, 'storeCategory'])->name('menu.categories.store');
-    Route::put('menu/{nanoid}/categories/{category}', [\App\Http\Controllers\Business\MenuController::class, 'updateCategory'])->name('menu.categories.update');
-    Route::delete('menu/{nanoid}/categories/{category}', [\App\Http\Controllers\Business\MenuController::class, 'destroyCategory'])->name('menu.categories.destroy');
-    Route::post('menu/{nanoid}/categories/reorder', [\App\Http\Controllers\Business\MenuController::class, 'reorderCategories'])->name('menu.categories.reorder');
-    Route::post('menu/{nanoid}/categories/{category}/items', [\App\Http\Controllers\Business\MenuController::class, 'storeItem'])->name('menu.items.store');
-    Route::post('menu/{nanoid}/categories/{category}/items/{item}', [\App\Http\Controllers\Business\MenuController::class, 'updateItem'])->name('menu.items.update');
-    Route::delete('menu/{nanoid}/categories/{category}/items/{item}', [\App\Http\Controllers\Business\MenuController::class, 'destroyItem'])->name('menu.items.destroy');
-    Route::post('menu/{nanoid}/categories/{category}/items/reorder', [\App\Http\Controllers\Business\MenuController::class, 'reorderItems'])->name('menu.items.reorder');
-    Route::get('qr-code', [\App\Http\Controllers\Business\QRCodeController::class, 'index'])->name('qr-code');
-    Route::get('settings', [\App\Http\Controllers\Business\SettingsController::class, 'index'])->name('settings');
-    Route::put('settings/password', [\App\Http\Controllers\Business\SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('profile/{nanoid}', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('profile/{nanoid}/logo', [ProfileController::class, 'deleteLogo'])->name('profile.deleteLogo');
+    Route::get('links', [LinkController::class, 'index'])->name('links');
+    Route::post('links/{nanoid}', [LinkController::class, 'store'])->name('links.store');
+    Route::put('links/{nanoid}/{link}', [LinkController::class, 'update'])->name('links.update');
+    Route::delete('links/{nanoid}/{link}', [LinkController::class, 'destroy'])->name('links.destroy');
+    Route::post('links/{nanoid}/reorder', [LinkController::class, 'reorder'])->name('links.reorder');
+    Route::get('menu', [App\Http\Controllers\Business\MenuController::class, 'index'])->name('menu');
+    Route::post('menu/{nanoid}/categories', [App\Http\Controllers\Business\MenuController::class, 'storeCategory'])->name('menu.categories.store');
+    Route::put('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'updateCategory'])->name('menu.categories.update');
+    Route::delete('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'destroyCategory'])->name('menu.categories.destroy');
+    Route::post('menu/{nanoid}/categories/reorder', [App\Http\Controllers\Business\MenuController::class, 'reorderCategories'])->name('menu.categories.reorder');
+    Route::post('menu/{nanoid}/categories/{category}/items', [App\Http\Controllers\Business\MenuController::class, 'storeItem'])->name('menu.items.store');
+    Route::post('menu/{nanoid}/categories/{category}/items/{item}', [App\Http\Controllers\Business\MenuController::class, 'updateItem'])->name('menu.items.update');
+    Route::delete('menu/{nanoid}/categories/{category}/items/{item}', [App\Http\Controllers\Business\MenuController::class, 'destroyItem'])->name('menu.items.destroy');
+    Route::post('menu/{nanoid}/categories/{category}/items/reorder', [App\Http\Controllers\Business\MenuController::class, 'reorderItems'])->name('menu.items.reorder');
+    Route::patch('menu/{nanoid}/categories/{category}/items/{item}/toggle-active', [App\Http\Controllers\Business\MenuController::class, 'toggleItemActive'])->name('menu.items.toggle-active');
+    Route::get('qr-code', [QRCodeController::class, 'index'])->name('qr-code');
+    Route::get('settings', [App\Http\Controllers\Business\SettingsController::class, 'index'])->name('settings');
+    Route::put('settings/password', [App\Http\Controllers\Business\SettingsController::class, 'updatePassword'])->name('settings.password');
 });
 
 // Admin Routes - /adminos prefix
 Route::prefix('adminos')->name('admin.')->group(function () {
     // Admin root - redirect to dashboard or login
     Route::get('/', function () {
-        if (auth()->check() && auth()->user() instanceof \App\Models\User) {
+        if (auth()->check() && auth()->user() instanceof User) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -68,6 +75,11 @@ Route::prefix('adminos')->name('admin.')->group(function () {
     Route::get('login', function () {
         return inertia('Admin/Login');
     })->middleware('guest')->name('login');
+
+    // Admin logout
+    Route::post('logout', [AdminLoginController::class, 'destroy'])
+        ->middleware('auth')
+        ->name('logout');
 
     // Protected admin routes
     Route::middleware(['auth', 'admin'])->group(function () {
@@ -103,6 +115,8 @@ Route::prefix('adminos')->name('admin.')->group(function () {
             ->name('businesses.items.destroy');
         Route::post('businesses/{business}/categories/{category}/items/reorder', [MenuController::class, 'reorderItems'])
             ->name('businesses.items.reorder');
+        Route::patch('businesses/{business}/categories/{category}/items/{item}/toggle-active', [MenuController::class, 'toggleItemActive'])
+            ->name('businesses.items.toggle-active');
 
         // Users Management (Business Users)
         Route::resource('users', UserController::class);

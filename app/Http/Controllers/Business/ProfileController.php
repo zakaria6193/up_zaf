@@ -7,10 +7,10 @@ use App\Models\Business;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 
 class ProfileController extends Controller
@@ -41,8 +41,8 @@ class ProfileController extends Controller
                 'nanoid' => $business->nanoid,
                 'name' => $business->name,
                 'address' => $business->address,
-                'lat' => $business->lat,
-                'lng' => $business->lng,
+                'lat' => $business->lat !== null ? (float) $business->lat : null,
+                'lng' => $business->lng !== null ? (float) $business->lng : null,
                 'logo' => $business->logoUrl(),
                 'color' => $business->color ?? '#3b82f6',
                 'is_active' => $business->is_active,
@@ -121,16 +121,16 @@ class ProfileController extends Controller
      */
     private function processLogo($file): string
     {
-        $manager = new ImageManager(new Driver());
+        $manager = ImageManager::usingDriver(Driver::class);
 
         // Read the uploaded image
-        $image = $manager->read($file->getRealPath());
+        $image = $manager->decodePath($file->getRealPath());
 
         // Resize to max 400x400 while maintaining aspect ratio
         $image->scale(width: 400, height: 400);
 
         // Encode with quality optimization (85% quality for good balance)
-        $encoded = $image->toJpeg(quality: 85);
+        $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 85);
 
         // Generate unique filename
         $filename = 'logos/'.uniqid().'_'.time().'.jpg';

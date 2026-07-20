@@ -26,10 +26,11 @@ class AuthenticationTest extends TestCase
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
+            'login_type' => 'admin',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('admin.dashboard', absolute: false));
     }
 
     public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()
@@ -52,6 +53,7 @@ class AuthenticationTest extends TestCase
         $response = $this->post(route('login'), [
             'email' => $user->email,
             'password' => 'password',
+            'login_type' => 'admin',
         ]);
 
         $response->assertRedirect(route('two-factor.login'));
@@ -66,6 +68,7 @@ class AuthenticationTest extends TestCase
         $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'wrong-password',
+            'login_type' => 'admin',
         ]);
 
         $this->assertGuest();
@@ -90,6 +93,7 @@ class AuthenticationTest extends TestCase
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'wrong-password',
+            'login_type' => 'admin',
         ]);
 
         $response->assertTooManyRequests();

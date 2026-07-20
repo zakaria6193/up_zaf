@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Allow temporary share tunnels (Cloudflare / ngrok) to pass the real host/scheme.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(prepend: [
             NormalizeLoginCredentials::class,
         ]);

@@ -32,7 +32,9 @@ class PublicBusinessController extends Controller
         $this->trackVisit($business, $request);
 
         $activeLinksCount = $business->activeLinks->count();
-        $parentCategories = $business->menuCategories->filter(fn ($cat) => is_null($cat->parent_id));
+        $parentCategories = $business->menuCategories
+            ->filter(fn ($cat) => is_null($cat->parent_id))
+            ->values();
         $hasMenu = $parentCategories->count() > 0;
 
         // No active links and no menu - show not found
@@ -62,36 +64,36 @@ class PublicBusinessController extends Controller
                 'lat' => $business->lat,
                 'lng' => $business->lng,
             ],
-            'links' => $business->activeLinks->filter(fn ($link) => $link->type !== 'menu')->map(fn ($link) => [
+            'links' => $business->activeLinks->filter(fn ($link) => $link->type !== 'menu')->values()->map(fn ($link) => [
                 'id' => $link->id,
                 'type' => $link->type,
                 'label' => $link->label,
                 'url' => $link->url,
-            ]),
+            ])->values(),
             'hasMenu' => $hasMenu,
             'categories' => $parentCategories->map(fn ($category) => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'order' => $category->order,
-                'items' => $category->items->map(fn ($item) => [
+                'items' => $category->items->where('is_active', true)->values()->map(fn ($item) => [
                     'id' => $item->id,
                     'name' => $item->name,
                     'description' => $item->description,
                     'price' => $item->price,
                     'image' => $item->imageUrl(),
-                ]),
+                ])->values(),
                 'subcategories' => $category->subcategories->map(fn ($subcategory) => [
                     'id' => $subcategory->id,
                     'name' => $subcategory->name,
-                    'items' => $subcategory->items->map(fn ($item) => [
+                    'items' => $subcategory->items->where('is_active', true)->values()->map(fn ($item) => [
                         'id' => $item->id,
                         'name' => $item->name,
                         'description' => $item->description,
                         'price' => $item->price,
                         'image' => $item->imageUrl(),
-                    ]),
-                ]),
-            ]),
+                    ])->values(),
+                ])->values(),
+            ])->values(),
         ]);
     }
 
@@ -113,8 +115,10 @@ class PublicBusinessController extends Controller
         // Track visit
         $this->trackVisit($business, $request);
 
-        // Only get parent categories (those without parent_id)
-        $parentCategories = $business->menuCategories->filter(fn ($cat) => is_null($cat->parent_id));
+        // Only get parent categories (those without parent_id), reindexed so JSON stays an array
+        $parentCategories = $business->menuCategories
+            ->filter(fn ($cat) => is_null($cat->parent_id))
+            ->values();
 
         return Inertia::render('Public/BusinessMenu', [
             'business' => [
@@ -131,25 +135,25 @@ class PublicBusinessController extends Controller
             'categories' => $parentCategories->map(fn ($category) => [
                 'id' => $category->id,
                 'name' => $category->name,
-                'items' => $category->items->map(fn ($item) => [
+                'items' => $category->items->where('is_active', true)->values()->map(fn ($item) => [
                     'id' => $item->id,
                     'name' => $item->name,
                     'description' => $item->description,
                     'price' => $item->price,
                     'image' => $item->imageUrl(),
-                ]),
+                ])->values(),
                 'subcategories' => $category->subcategories->map(fn ($subcategory) => [
                     'id' => $subcategory->id,
                     'name' => $subcategory->name,
-                    'items' => $subcategory->items->map(fn ($item) => [
+                    'items' => $subcategory->items->where('is_active', true)->values()->map(fn ($item) => [
                         'id' => $item->id,
                         'name' => $item->name,
                         'description' => $item->description,
                         'price' => $item->price,
                         'image' => $item->imageUrl(),
-                    ]),
-                ]),
-            ]),
+                    ])->values(),
+                ])->values(),
+            ])->values(),
         ]);
     }
 

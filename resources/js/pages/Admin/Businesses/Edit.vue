@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { update, index, show } from '@/actions/App/Http/Controllers/Admin/BusinessController';
 import {
     storeCategory,
@@ -16,9 +17,11 @@ import {
     updateItem,
     destroyItem,
     reorderItems,
+    toggleItemActive,
 } from '@/actions/App/Http/Controllers/Admin/MenuController';
-import { onMounted, ref, computed, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { X, Plus, Edit, Trash2, Save, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import LocationPicker from '@/components/LocationPicker.vue';
 
 defineOptions({
     layout: {
@@ -54,6 +57,7 @@ const props = defineProps<{
             price: string;
             image: string | null;
             order: number;
+            is_active: boolean;
         }>;
     }>;
 }>();
@@ -75,12 +79,7 @@ const form = useForm({
 });
 
 const logoPreview = ref<string | null>(props.business.logo);
-const mapInput = ref<HTMLInputElement | null>(null);
-const mapContainer = ref<HTMLDivElement | null>(null);
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-let map: google.maps.Map | null = null;
-let marker: google.maps.Marker | null = null;
+const locationPicker = ref<{ refresh: () => Promise<void> } | null>(null);
 
 // Menu management state
 const showAddCategoryForm = ref(false);
@@ -148,114 +147,10 @@ const removeLogo = () => {
     }
 };
 
-// Google Maps
-const initGoogleMaps = async () => {
-    if (!window.google || !mapContainer.value) {
-        return;
-    }
-
-    // Wait for input element to be available
-    await nextTick();
-
-    const inputElement = mapInput.value;
-    if (!inputElement || !(inputElement instanceof HTMLInputElement)) {
-        console.warn('Map input element not found or invalid');
-        return;
-    }
-
-    // Initialize autocomplete on input
-    const autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
-        types: ['establishment', 'geocode'],
-        componentRestrictions: { country: 'ma' },
-    });
-
-    autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-
-        if (place.geometry && place.geometry.location) {
-            form.address = place.formatted_address || '';
-            form.lat = place.geometry.location.lat();
-            form.lng = place.geometry.location.lng();
-
-            // Update map and marker
-            if (map && marker) {
-                map.setCenter(place.geometry.location);
-                map.setZoom(15);
-                marker.setPosition(place.geometry.location);
-                marker.setVisible(true);
-            }
-        }
-    });
-
-    // Initialize map
-    const defaultCenter = props.business.lat && props.business.lng
-        ? { lat: props.business.lat, lng: props.business.lng }
-        : { lat: 33.5731, lng: -7.5898 }; // Casablanca
-
-    map = new google.maps.Map(mapContainer.value, {
-        center: defaultCenter,
-        zoom: props.business.lat && props.business.lng ? 15 : 11,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-    });
-
-    // Initialize marker
-    marker = new google.maps.Marker({
-        map: map,
-        draggable: true,
-        position: props.business.lat && props.business.lng ? defaultCenter : undefined,
-        visible: props.business.lat && props.business.lng ? true : false,
-    });
-
-    // Update form when marker is dragged
-    marker.addListener('dragend', () => {
-        const position = marker!.getPosition();
-        if (position) {
-            form.lat = position.lat();
-            form.lng = position.lng();
-
-            // Reverse geocode to get address
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: position }, (results, status) => {
-                if (status === 'OK' && results && results[0]) {
-                    form.address = results[0].formatted_address;
-                }
-            });
-        }
-    });
-
-    // Allow clicking on map to place marker
-    map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-            form.lat = e.latLng.lat();
-            form.lng = e.latLng.lng();
-            marker!.setPosition(e.latLng);
-            marker!.setVisible(true);
-
-            // Reverse geocode
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: e.latLng }, (results, status) => {
-                if (status === 'OK' && results && results[0]) {
-                    form.address = results[0].formatted_address;
-                }
-            });
-        }
-    });
-};
-
-onMounted(() => {
-    if (googleMapsApiKey && !window.google) {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-            nextTick(() => initGoogleMaps());
-        };
-        document.head.appendChild(script);
-    } else if (window.google) {
-        nextTick(() => initGoogleMaps());
+watch(activeTab, async (tab) => {
+    if (tab === 'location') {
+        await nextTick();
+        await locationPicker.value?.refresh();
     }
 });
 
@@ -290,7 +185,7 @@ const cancelEditCategory = () => {
 };
 
 const handleUpdateCategory = (categoryId: number) => {
-    editCategoryForm.put(updateCategory.url(props.business.nanoid, categoryId), {
+    editCategoryForm.put(updateCategory.url([props.business.nanoid, categoryId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingCategoryId.value = null;
@@ -301,7 +196,7 @@ const handleUpdateCategory = (categoryId: number) => {
 
 const handleDeleteCategory = (categoryId: number, categoryName: string) => {
     if (confirm(`Are you sure you want to delete "${categoryName}"? This will also delete all items in this category.`)) {
-        router.delete(destroyCategory.url(props.business.nanoid, categoryId));
+        router.delete(destroyCategory.url([props.business.nanoid, categoryId]));
     }
 };
 
@@ -362,7 +257,7 @@ const removeItemImage = (formType: 'add' | 'edit') => {
 };
 
 const handleAddItem = (categoryId: number) => {
-    addItemForm.post(storeItem.url(props.business.nanoid, categoryId), {
+    addItemForm.post(storeItem.url([props.business.nanoid, categoryId]), {
         preserveScroll: true,
         onSuccess: () => {
             addItemForm.reset();
@@ -392,7 +287,7 @@ const handleUpdateItem = (categoryId: number, itemId: number) => {
     // Use the stored category ID if available (for safety)
     const targetCategoryId = editingItemCategoryId.value ?? categoryId;
 
-    editItemForm.post(updateItem.url(props.business.nanoid, targetCategoryId, itemId), {
+    editItemForm.post(updateItem.url([props.business.nanoid, targetCategoryId, itemId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingItemId.value = null;
@@ -405,8 +300,14 @@ const handleUpdateItem = (categoryId: number, itemId: number) => {
 
 const handleDeleteItem = (categoryId: number, itemId: number, itemName: string) => {
     if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
-        router.delete(destroyItem.url(props.business.nanoid, categoryId, itemId));
+        router.delete(destroyItem.url([props.business.nanoid, categoryId, itemId]));
     }
+};
+
+const handleToggleItemActive = (categoryId: number, itemId: number) => {
+    router.patch(toggleItemActive.url([props.business.nanoid, categoryId, itemId]), {}, {
+        preserveScroll: true,
+    });
 };
 
 const moveItemUp = (categoryId: number, item: typeof props.categories[0]['items'][0]) => {
@@ -424,7 +325,7 @@ const moveItemUp = (categoryId: number, item: typeof props.categories[0]['items'
         return { id: i.id, order: index };
     });
 
-    router.post(reorderItems.url(props.business.nanoid, categoryId), { items: newItems });
+    router.post(reorderItems.url([props.business.nanoid, categoryId]), { items: newItems });
 };
 
 const moveItemDown = (categoryId: number, item: typeof props.categories[0]['items'][0]) => {
@@ -442,7 +343,7 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
         return { id: i.id, order: index };
     });
 
-    router.post(reorderItems.url(props.business.nanoid, categoryId), { items: newItems });
+    router.post(reorderItems.url([props.business.nanoid, categoryId]), { items: newItems });
 };
 </script>
 
@@ -568,36 +469,16 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                             <CardDescription>Set the address and coordinates using Google Maps</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                            <div class="space-y-2">
-                                <Label for="address">Address</Label>
-                                <Input
-                                    id="address"
-                                    ref="mapInput"
-                                    v-model="form.address"
-                                    type="text"
-                                    placeholder="Rechercher sur Google Places..."
-                                    :class="{ 'border-destructive': form.errors.address }"
-                                />
-                                <p class="text-xs text-muted-foreground">
-                                    Recherchez une adresse ou cliquez sur la carte pour placer le marqueur
-                                </p>
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label>Carte</Label>
-                                <div
-                                    ref="mapContainer"
-                                    class="h-[400px] w-full rounded-lg border bg-muted"
-                                />
-                                <p class="text-xs text-muted-foreground">
-                                    Cliquez sur la carte ou déplacez le marqueur pour définir l'emplacement exact
-                                </p>
-                            </div>
-
-                            <div v-if="form.lat && form.lng" class="rounded-lg border bg-muted/30 p-3">
-                                <p class="text-sm font-medium">Coordonnées sélectionnées:</p>
-                                <p class="text-sm text-muted-foreground">{{ form.lat }}, {{ form.lng }}</p>
-                            </div>
+                            <LocationPicker
+                                ref="locationPicker"
+                                v-model:address="form.address"
+                                v-model:lat="form.lat"
+                                v-model:lng="form.lng"
+                                :active="activeTab === 'location'"
+                            />
+                            <p v-if="form.errors.address" class="text-sm text-destructive">
+                                {{ form.errors.address }}
+                            </p>
                         </CardContent>
                     </Card>
 
@@ -771,7 +652,7 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                 >
                                     <!-- Item View Mode -->
                                     <div v-if="editingItemId !== item.id" class="flex items-start justify-between gap-4">
-                                        <div class="flex gap-3 flex-1">
+                                        <div class="flex gap-3 flex-1" :class="{ 'opacity-60': !item.is_active }">
                                             <img
                                                 v-if="item.image"
                                                 :src="item.image"
@@ -779,14 +660,27 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                                 class="h-16 w-16 rounded-lg object-cover"
                                             />
                                             <div class="flex-1">
-                                                <p class="font-medium">{{ item.name }}</p>
+                                                <div class="flex items-center gap-2">
+                                                    <p class="font-medium">{{ item.name }}</p>
+                                                    <span
+                                                        v-if="!item.is_active"
+                                                        class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                                                    >
+                                                        Unavailable
+                                                    </span>
+                                                </div>
                                                 <p v-if="item.description" class="text-sm text-muted-foreground">
                                                     {{ item.description }}
                                                 </p>
                                                 <p class="mt-1 font-semibold text-primary">{{ item.price }} MAD</p>
                                             </div>
                                         </div>
-                                        <div class="flex gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <Switch
+                                                :checked="item.is_active"
+                                                :title="item.is_active ? 'Deactivate item' : 'Activate item'"
+                                                @update:checked="() => handleToggleItemActive(category.id, item.id)"
+                                            />
                                             <Button
                                                 size="icon"
                                                 variant="ghost"

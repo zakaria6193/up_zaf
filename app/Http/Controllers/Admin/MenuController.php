@@ -21,8 +21,10 @@ class MenuController extends Controller
     {
         $business->load(['menuCategories.items', 'menuCategories.subcategories.items']);
 
-        // Only get parent categories (no parent_id)
-        $parentCategories = $business->menuCategories->filter(fn ($cat) => is_null($cat->parent_id));
+        // Only get parent categories (no parent_id), reindexed so JSON stays an array
+        $parentCategories = $business->menuCategories
+            ->filter(fn ($cat) => is_null($cat->parent_id))
+            ->values();
 
         return Inertia::render('Admin/Businesses/Menu/Index', [
             'business' => [
@@ -41,7 +43,8 @@ class MenuController extends Controller
                     'price' => $item->price,
                     'image' => $item->imageUrl(),
                     'order' => $item->order,
-                ]),
+                    'is_active' => $item->is_active,
+                ])->values(),
                 'subcategories' => $category->subcategories->map(fn ($subcategory) => [
                     'id' => $subcategory->id,
                     'name' => $subcategory->name,
@@ -54,9 +57,10 @@ class MenuController extends Controller
                         'price' => $item->price,
                         'image' => $item->imageUrl(),
                         'order' => $item->order,
-                    ]),
-                ]),
-            ]),
+                        'is_active' => $item->is_active,
+                    ])->values(),
+                ])->values(),
+            ])->values(),
         ]);
     }
 
@@ -82,7 +86,7 @@ class MenuController extends Controller
 
         $business->menuCategories()->create($validated);
 
-        return back()->with('success', $validated['parent_id'] ? 'Subcategory added successfully!' : 'Category added successfully!');
+        return back()->with('success', ! empty($validated['parent_id']) ? 'Subcategory added successfully!' : 'Category added successfully!');
     }
 
     /**
@@ -225,5 +229,22 @@ class MenuController extends Controller
         }
 
         return back()->with('success', 'Items reordered successfully!');
+    }
+
+    /**
+     * Toggle whether a menu item is available.
+     */
+    public function toggleItemActive(Business $business, MenuCategory $category, MenuItem $item): RedirectResponse
+    {
+        if ($category->business_id !== $business->id || $item->category_id !== $category->id) {
+            abort(403);
+        }
+
+        $item->update(['is_active' => ! $item->is_active]);
+
+        return back()->with(
+            'success',
+            $item->is_active ? 'Item activated successfully!' : 'Item deactivated successfully!'
+        );
     }
 }

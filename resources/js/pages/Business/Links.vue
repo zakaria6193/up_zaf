@@ -16,6 +16,12 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
+import {
+    store as storeLink,
+    update as updateLink,
+    destroy as destroyLink,
+    reorder as reorderLinks,
+} from '@/actions/App/Http/Controllers/Business/LinkController';
 
 const props = defineProps<{
     business: {
@@ -60,7 +66,7 @@ const sortedLinks = computed(() => {
 });
 
 const handleAddLink = () => {
-    addForm.post(route('business.links.store', props.business.nanoid), {
+    addForm.post(storeLink.url(props.business.nanoid), {
         preserveScroll: true,
         onSuccess: () => {
             addForm.reset();
@@ -83,7 +89,7 @@ const cancelEdit = () => {
 };
 
 const handleUpdateLink = (linkId: number) => {
-    editForm.put(route('business.links.update', [props.business.nanoid, linkId]), {
+    editForm.put(updateLink.url([props.business.nanoid, linkId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingId.value = null;
@@ -94,7 +100,7 @@ const handleUpdateLink = (linkId: number) => {
 
 const handleDeleteLink = (linkId: number, linkLabel: string) => {
     if (confirm(`Are you sure you want to delete "${linkLabel}"?`)) {
-        router.delete(route('business.links.destroy', [props.business.nanoid, linkId]));
+        router.delete(destroyLink.url([props.business.nanoid, linkId]));
     }
 };
 
@@ -114,7 +120,7 @@ const moveUp = (link: typeof props.links[0]) => {
         return { id: l.id, order: index };
     });
 
-    router.post(route('business.links.reorder', props.business.nanoid), { links: newLinks });
+    router.post(reorderLinks.url(props.business.nanoid), { links: newLinks });
 };
 
 const moveDown = (link: typeof props.links[0]) => {
@@ -133,7 +139,7 @@ const moveDown = (link: typeof props.links[0]) => {
         return { id: l.id, order: index };
     });
 
-    router.post(route('business.links.reorder', props.business.nanoid), { links: newLinks });
+    router.post(reorderLinks.url(props.business.nanoid), { links: newLinks });
 };
 </script>
 
@@ -154,7 +160,6 @@ const moveDown = (link: typeof props.links[0]) => {
             <BusinessSwitcher
                 :businesses="userBusinesses"
                 :current-nanoid="business.nanoid"
-                route="business.links"
                 label="Managing:"
             />
         </div>

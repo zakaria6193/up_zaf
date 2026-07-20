@@ -17,15 +17,17 @@ import {
     updateItem,
     destroyItem,
     reorderItems,
+    toggleItemActive,
 } from '@/actions/App/Http/Controllers/Admin/MenuController';
 import { ref, computed } from 'vue';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown, FolderPlus } from 'lucide-vue-next';
+import { Switch } from '@/components/ui/switch';
 
 defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dashboard', href: '/adminos/dashboard' },
-            { title: 'Businesses', href: businessIndex().url() },
+            { title: 'Businesses', href: businessIndex.url() },
             { title: 'Menu Management' },
         ],
     },
@@ -38,6 +40,7 @@ interface MenuItem {
     price: string;
     image: string | null;
     order: number;
+    is_active: boolean;
 }
 
 interface Subcategory {
@@ -93,17 +96,21 @@ const editItemForm = useForm({
 });
 
 const sortedCategories = computed(() => {
-    return [...props.categories].sort((a, b) => a.order - b.order);
+    const categories = Array.isArray(props.categories) ? props.categories : Object.values(props.categories ?? {});
+
+    return [...categories].sort((a, b) => a.order - b.order);
 });
 
 const sortedSubcategories = (categoryId: number) => {
-    const category = props.categories.find((c) => c.id === categoryId);
+    const categories = Array.isArray(props.categories) ? props.categories : Object.values(props.categories ?? {});
+    const category = categories.find((c) => c.id === categoryId);
     if (!category) return [];
     return [...category.subcategories].sort((a, b) => a.order - b.order);
 };
 
 const sortedItems = (categoryId: number, subcategoryId?: number) => {
-    const category = props.categories.find((c) => c.id === categoryId);
+    const categories = Array.isArray(props.categories) ? props.categories : Object.values(props.categories ?? {});
+    const category = categories.find((c) => c.id === categoryId);
     if (!category) return [];
 
     if (subcategoryId) {
@@ -116,7 +123,7 @@ const sortedItems = (categoryId: number, subcategoryId?: number) => {
 
 // Category handlers
 const handleAddCategory = () => {
-    addCategoryForm.post(storeCategory(props.business.nanoid).url(), {
+    addCategoryForm.post(storeCategory.url(props.business.nanoid), {
         preserveScroll: true,
         onSuccess: () => {
             addCategoryForm.reset();
@@ -127,7 +134,7 @@ const handleAddCategory = () => {
 
 const handleAddSubcategory = (parentId: number) => {
     addCategoryForm.parent_id = parentId;
-    addCategoryForm.post(storeCategory(props.business.nanoid).url(), {
+    addCategoryForm.post(storeCategory.url(props.business.nanoid), {
         preserveScroll: true,
         onSuccess: () => {
             addCategoryForm.reset();
@@ -147,7 +154,7 @@ const cancelEditCategory = () => {
 };
 
 const handleUpdateCategory = (categoryId: number) => {
-    editCategoryForm.put(updateCategory(props.business.nanoid, categoryId).url(), {
+    editCategoryForm.put(updateCategory.url([props.business.nanoid, categoryId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingCategoryId.value = null;
@@ -158,14 +165,14 @@ const handleUpdateCategory = (categoryId: number) => {
 
 const handleDeleteCategory = (categoryId: number, categoryName: string) => {
     if (confirm(`Are you sure you want to delete "${categoryName}"? This will also delete all items in this category.`)) {
-        router.delete(destroyCategory(props.business.nanoid, categoryId).url());
+        router.delete(destroyCategory.url([props.business.nanoid, categoryId]));
     }
 };
 
 // Item handlers (inline quick add)
 const handleQuickAddItem = (categoryId: number, subcategoryId?: number) => {
     const targetCategoryId = subcategoryId || categoryId;
-    addItemForm.post(storeItem(props.business.nanoid, targetCategoryId).url(), {
+    addItemForm.post(storeItem.url([props.business.nanoid, targetCategoryId]), {
         preserveScroll: true,
         onSuccess: () => {
             addItemForm.reset();
@@ -187,7 +194,7 @@ const cancelEditItem = () => {
 };
 
 const handleUpdateItem = (categoryId: number, itemId: number) => {
-    editItemForm.post(updateItem(props.business.nanoid, categoryId, itemId).url(), {
+    editItemForm.put(updateItem.url([props.business.nanoid, categoryId, itemId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingItemId.value = null;
@@ -198,8 +205,14 @@ const handleUpdateItem = (categoryId: number, itemId: number) => {
 
 const handleDeleteItem = (categoryId: number, itemId: number, itemName: string) => {
     if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
-        router.delete(destroyItem(props.business.nanoid, categoryId, itemId).url());
+        router.delete(destroyItem.url([props.business.nanoid, categoryId, itemId]));
     }
+};
+
+const handleToggleItemActive = (categoryId: number, itemId: number) => {
+    router.patch(toggleItemActive.url([props.business.nanoid, categoryId, itemId]), {}, {
+        preserveScroll: true,
+    });
 };
 </script>
 
@@ -216,7 +229,7 @@ const handleDeleteItem = (categoryId: number, itemId: number, itemName: string) 
                 </p>
             </div>
             <Button as-child variant="outline">
-                <Link :href="businessShow(business.nanoid).url()">
+                <Link :href="businessShow.url(business.nanoid)">
                     Back to Business
                 </Link>
             </Button>
@@ -366,19 +379,31 @@ const handleDeleteItem = (categoryId: number, itemId: number, itemName: string) 
                                 v-for="item in sortedItems(category.id)"
                                 :key="item.id"
                                 class="flex items-center justify-between p-2 rounded border bg-white hover:bg-gray-50"
+                                :class="{ 'opacity-60': !item.is_active }"
                             >
                                 <div v-if="editingItemId !== item.id" class="flex-1">
-                                    <p class="font-medium text-sm">{{ item.name }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-medium text-sm">{{ item.name }}</p>
+                                        <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                    </div>
                                     <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
                                     <p class="text-sm font-semibold text-primary">{{ item.price }} MAD</p>
                                 </div>
-                                <form v-else @submit.prevent="handleUpdateItem(category.id, item.id)" class="flex-1 flex gap-2">
-                                    <Input v-model="editItemForm.name" type="text" size="sm" required />
-                                    <Input v-model="editItemForm.price" type="number" step="0.01" size="sm" required class="w-24" />
-                                    <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
-                                    <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
+                                <form v-else @submit.prevent="handleUpdateItem(category.id, item.id)" class="flex-1 grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
+                                    <Input v-model="editItemForm.name" type="text" placeholder="Item name" size="sm" required />
+                                    <Input v-model="editItemForm.price" type="number" step="0.01" placeholder="Price" size="sm" required />
+                                    <Input v-model="editItemForm.description" type="text" placeholder="Description (optional)" size="sm" />
+                                    <div class="flex gap-1">
+                                        <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
+                                        <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
+                                    </div>
                                 </form>
-                                <div v-if="editingItemId !== item.id" class="flex gap-1">
+                                <div v-if="editingItemId !== item.id" class="flex items-center gap-2">
+                                    <Switch
+                                        :checked="item.is_active"
+                                        :title="item.is_active ? 'Deactivate item' : 'Activate item'"
+                                        @update:checked="() => handleToggleItemActive(category.id, item.id)"
+                                    />
                                     <Button size="sm" variant="ghost" @click="startEditItem(item)">
                                         <Edit class="h-3 w-3" />
                                     </Button>
@@ -445,19 +470,31 @@ const handleDeleteItem = (categoryId: number, itemId: number, itemName: string) 
                                     v-for="item in sortedItems(category.id, subcategory.id)"
                                     :key="item.id"
                                     class="flex items-center justify-between p-2 rounded border bg-white hover:bg-gray-50"
+                                    :class="{ 'opacity-60': !item.is_active }"
                                 >
                                     <div v-if="editingItemId !== item.id" class="flex-1">
-                                        <p class="font-medium text-sm">{{ item.name }}</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-medium text-sm">{{ item.name }}</p>
+                                            <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                        </div>
                                         <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
                                         <p class="text-sm font-semibold text-primary">{{ item.price }} MAD</p>
                                     </div>
-                                    <form v-else @submit.prevent="handleUpdateItem(subcategory.id, item.id)" class="flex-1 flex gap-2">
-                                        <Input v-model="editItemForm.name" type="text" size="sm" required />
-                                        <Input v-model="editItemForm.price" type="number" step="0.01" size="sm" required class="w-24" />
-                                        <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
-                                        <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
+                                    <form v-else @submit.prevent="handleUpdateItem(subcategory.id, item.id)" class="flex-1 grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
+                                        <Input v-model="editItemForm.name" type="text" placeholder="Item name" size="sm" required />
+                                        <Input v-model="editItemForm.price" type="number" step="0.01" placeholder="Price" size="sm" required />
+                                        <Input v-model="editItemForm.description" type="text" placeholder="Description (optional)" size="sm" />
+                                        <div class="flex gap-1">
+                                            <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
+                                            <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
+                                        </div>
                                     </form>
-                                    <div v-if="editingItemId !== item.id" class="flex gap-1">
+                                    <div v-if="editingItemId !== item.id" class="flex items-center gap-2">
+                                        <Switch
+                                            :checked="item.is_active"
+                                            :title="item.is_active ? 'Deactivate item' : 'Activate item'"
+                                            @update:checked="() => handleToggleItemActive(subcategory.id, item.id)"
+                                        />
                                         <Button size="sm" variant="ghost" @click="startEditItem(item)">
                                             <Edit class="h-3 w-3" />
                                         </Button>

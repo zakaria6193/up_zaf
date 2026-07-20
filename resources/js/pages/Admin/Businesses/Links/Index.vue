@@ -28,7 +28,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dashboard', href: '/adminos/dashboard' },
-            { title: 'Businesses', href: businessIndex().url() },
+            { title: 'Businesses', href: businessIndex.url() },
             { title: 'Business Links' },
         ],
     },
@@ -73,7 +73,7 @@ const sortedLinks = computed(() => {
 });
 
 const handleAddLink = () => {
-    addForm.post(storeLink(props.business.nanoid).url(), {
+    addForm.post(storeLink.url(props.business.nanoid), {
         preserveScroll: true,
         onSuccess: () => {
             addForm.reset();
@@ -96,7 +96,7 @@ const cancelEdit = () => {
 };
 
 const handleUpdateLink = (linkId: number) => {
-    editForm.put(updateLink(props.business.nanoid, linkId).url(), {
+    editForm.put(updateLink.url([props.business.nanoid, linkId]), {
         preserveScroll: true,
         onSuccess: () => {
             editingId.value = null;
@@ -107,7 +107,7 @@ const handleUpdateLink = (linkId: number) => {
 
 const handleDeleteLink = (linkId: number, linkLabel: string) => {
     if (confirm(`Are you sure you want to delete "${linkLabel}"?`)) {
-        router.delete(destroyLink(props.business.nanoid, linkId).url());
+        router.delete(destroyLink.url([props.business.nanoid, linkId]));
     }
 };
 
@@ -127,7 +127,7 @@ const moveUp = (link: typeof props.links[0]) => {
         return { id: l.id, order: index };
     });
 
-    router.post(reorderLinks(props.business.nanoid).url(), { links: newLinks });
+    router.post(reorderLinks.url(props.business.nanoid), { links: newLinks });
 };
 
 const moveDown = (link: typeof props.links[0]) => {
@@ -146,7 +146,7 @@ const moveDown = (link: typeof props.links[0]) => {
         return { id: l.id, order: index };
     });
 
-    router.post(reorderLinks(props.business.nanoid).url(), { links: newLinks });
+    router.post(reorderLinks.url(props.business.nanoid), { links: newLinks });
 };
 </script>
 
@@ -163,7 +163,7 @@ const moveDown = (link: typeof props.links[0]) => {
                 </p>
             </div>
             <Button as-child variant="outline">
-                <Link :href="businessShow(business.nanoid).url()">
+                <Link :href="businessShow.url(business.nanoid)">
                     Back to Business
                 </Link>
             </Button>

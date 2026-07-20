@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,10 @@ use Illuminate\Support\Facades\Storage;
 class MenuItem extends Model
 {
     use HasFactory;
+
+    /**
+     * @var list<string>
+     */
     protected $fillable = [
         'category_id',
         'name',
@@ -17,12 +22,20 @@ class MenuItem extends Model
         'price',
         'image',
         'order',
+        'is_active',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'order' => 'integer',
-    ];
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'order' => 'integer',
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * Get the category that owns this item.
@@ -30,6 +43,14 @@ class MenuItem extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(MenuCategory::class, 'category_id');
+    }
+
+    /**
+     * Scope a query to only include active items.
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 
     /**

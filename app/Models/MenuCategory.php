@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class MenuCategory extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'business_id',
         'parent_id',
@@ -35,6 +36,14 @@ class MenuCategory extends Model
     public function items(): HasMany
     {
         return $this->hasMany(MenuItem::class, 'category_id')->orderBy('order');
+    }
+
+    /**
+     * Get active (available) items in this category.
+     */
+    public function activeItems(): HasMany
+    {
+        return $this->items()->where('is_active', true);
     }
 
     /**

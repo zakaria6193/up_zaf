@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\BusinessUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 
 class BusinessController extends Controller
@@ -45,7 +47,7 @@ class BusinessController extends Controller
         return Inertia::render('Admin/Businesses/Index', [
             'businesses' => $businesses,
             'filters' => $request->only(['search']),
-            'businessUsers' => \App\Models\BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
+            'businessUsers' => BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
         ]);
     }
 
@@ -55,7 +57,7 @@ class BusinessController extends Controller
     public function create(): Response
     {
         return Inertia::render('Admin/Businesses/Create', [
-            'businessUsers' => \App\Models\BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
+            'businessUsers' => BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
         ]);
     }
 
@@ -147,8 +149,9 @@ class BusinessController extends Controller
                     'price' => $item->price,
                     'image' => $item->imageUrl(),
                     'order' => $item->order,
-                ]),
-            ]),
+                    'is_active' => $item->is_active,
+                ])->values(),
+            ])->values(),
         ]);
     }
 
@@ -220,16 +223,16 @@ class BusinessController extends Controller
      */
     private function processLogo($file): string
     {
-        $manager = new ImageManager(new Driver());
+        $manager = ImageManager::usingDriver(Driver::class);
 
         // Read the uploaded image
-        $image = $manager->read($file->getRealPath());
+        $image = $manager->decodePath($file->getRealPath());
 
         // Resize to max 400x400 while maintaining aspect ratio
         $image->scale(width: 400, height: 400);
 
         // Encode with quality optimization (85% quality for good balance)
-        $encoded = $image->toJpeg(quality: 85);
+        $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 85);
 
         // Generate unique filename
         $filename = 'logos/'.uniqid().'_'.time().'.jpg';
