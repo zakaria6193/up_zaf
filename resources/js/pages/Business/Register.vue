@@ -6,33 +6,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLogo from '@/components/AppLogo.vue';
+import { store } from '@/actions/App/Http/Controllers/Business/RegisterController';
 
 defineOptions({ layout: false });
 
-defineProps<{
-    status?: string;
+const props = defineProps<{
     googleEnabled?: boolean;
+    trialMinutes?: number;
 }>();
 
 const page = usePage();
 const flashError = computed(() => (page.props.flash as { error?: string } | undefined)?.error);
 
 const form = useForm({
+    name: '',
+    email: '',
     phone: '',
     password: '',
-    remember: false,
-    login_type: 'business',
+    password_confirmation: '',
 });
 
 const submit = () => {
-    form.post('/login', {
-        onFinish: () => form.reset('password'),
-    });
+    form.post(store.url());
 };
 </script>
 
 <template>
-    <Head title="Connexion Entreprise" />
+    <Head title="Créer un compte" />
 
     <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-stone-50 to-amber-50 p-4">
         <Card class="w-full max-w-md">
@@ -40,15 +40,12 @@ const submit = () => {
                 <div class="mb-4 flex justify-center">
                     <AppLogo class="h-12 w-auto" />
                 </div>
-                <CardTitle class="text-2xl font-bold">Connexion Entreprise</CardTitle>
+                <CardTitle class="text-2xl font-bold">Créer un compte</CardTitle>
                 <CardDescription>
-                    Entrez votre e-mail ou numéro de téléphone et votre mot de passe
+                    Essayez UP1 gratuitement pendant {{ trialMinutes ?? 10 }} minutes — puis passez Premium pour continuer.
                 </CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
-                <div v-if="status" class="rounded-md bg-green-50 p-3 text-sm text-green-800">
-                    {{ status }}
-                </div>
                 <div v-if="flashError" class="rounded-md bg-red-50 p-3 text-sm text-red-800">
                     {{ flashError }}
                 </div>
@@ -74,51 +71,50 @@ const submit = () => {
 
                 <form class="space-y-4" @submit.prevent="submit">
                     <div class="space-y-2">
-                        <Label for="phone">E-mail ou téléphone</Label>
-                        <Input
-                            id="phone"
-                            v-model="form.phone"
-                            type="text"
-                            autocomplete="username"
-                            placeholder="mohamed@example.com ou +212600111111"
-                            :class="{ 'border-destructive': form.errors.phone || form.errors.email }"
-                            required
-                            autofocus
-                        />
-                        <p v-if="form.errors.phone || form.errors.email" class="text-sm text-destructive">
-                            {{ form.errors.phone || form.errors.email }}
-                        </p>
+                        <Label for="name">Nom</Label>
+                        <Input id="name" v-model="form.name" required autofocus autocomplete="name" />
+                        <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="email">E-mail</Label>
+                        <Input id="email" v-model="form.email" type="email" required autocomplete="email" />
+                        <p v-if="form.errors.email" class="text-sm text-destructive">{{ form.errors.email }}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="phone">Téléphone (optionnel)</Label>
+                        <Input id="phone" v-model="form.phone" autocomplete="tel" placeholder="+2126..." />
+                        <p v-if="form.errors.phone" class="text-sm text-destructive">{{ form.errors.phone }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="password">Mot de passe</Label>
+                        <Input id="password" v-model="form.password" type="password" required autocomplete="new-password" />
+                        <p v-if="form.errors.password" class="text-sm text-destructive">{{ form.errors.password }}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="password_confirmation">Confirmer le mot de passe</Label>
                         <Input
-                            id="password"
-                            v-model="form.password"
+                            id="password_confirmation"
+                            v-model="form.password_confirmation"
                             type="password"
-                            autocomplete="current-password"
-                            :class="{ 'border-destructive': form.errors.password }"
                             required
+                            autocomplete="new-password"
                         />
-                        <p v-if="form.errors.password" class="text-sm text-destructive">
-                            {{ form.errors.password }}
-                        </p>
                     </div>
 
                     <Button type="submit" class="w-full" :disabled="form.processing">
-                        {{ form.processing ? 'Connexion...' : 'Se connecter' }}
+                        {{ form.processing ? 'Création...' : 'Créer mon compte' }}
                     </Button>
                 </form>
 
                 <p class="text-center text-sm text-muted-foreground">
-                    Pas encore de compte ?
-                    <Link href="/register" class="font-medium text-foreground underline-offset-4 hover:underline">
-                        S'inscrire
+                    Déjà un compte ?
+                    <Link href="/login" class="font-medium text-foreground underline-offset-4 hover:underline">
+                        Se connecter
                     </Link>
-                </p>
-
-                <p class="text-center text-xs text-muted-foreground">
-                    <Link href="/" class="hover:underline">← Retour à l'accueil</Link>
                 </p>
             </CardContent>
         </Card>

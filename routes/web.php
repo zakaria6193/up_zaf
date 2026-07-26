@@ -7,36 +7,42 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Business\BusinessController as OwnerBusinessController;
 use App\Http\Controllers\Business\DashboardController;
 use App\Http\Controllers\Business\LinkController;
 use App\Http\Controllers\Business\ProfileController;
 use App\Http\Controllers\Business\QRCodeController;
+use App\Http\Controllers\Business\RegisterController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PublicBusinessController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-// Business Owner (User) Routes - Root domain
-Route::get('/', function () {
-    if (auth()->check()) {
-        // Check if user is an admin (from users table)
-        if (auth()->user() instanceof User) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // Otherwise it's a business user
-        return redirect()->route('business.dashboard');
-    }
-
-    return inertia('Business/Login');
-})->name('home');
+// Marketing landing (guests) — authenticated users go to their dashboard
+Route::get('/', [MarketingController::class, 'home'])->name('home');
 
 // Default login route (required by Laravel auth)
 Route::get('login', function () {
-    return inertia('Business/Login');
+    return inertia('Business/Login', [
+        'googleEnabled' => filled(config('services.google.client_id'))
+            && filled(config('services.google.client_secret')),
+        'status' => session('status'),
+    ]);
 })->middleware('guest')->name('login');
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisterController::class, 'create'])->name('register');
+    Route::post('register', [RegisterController::class, 'store'])->name('register.store');
+
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+});
 
 Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('businesses/create', [OwnerBusinessController::class, 'create'])->name('businesses.create');
+    Route::post('businesses', [OwnerBusinessController::class, 'store'])->name('businesses.store');
     Route::get('profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('profile/{nanoid}', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile/{nanoid}/logo', [ProfileController::class, 'deleteLogo'])->name('profile.deleteLogo');

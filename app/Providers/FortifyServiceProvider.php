@@ -88,7 +88,11 @@ class FortifyServiceProvider extends ServiceProvider
 
             return $isAdmin
                 ? Inertia::render('Admin/Login')
-                : Inertia::render('Business/Login');
+                : Inertia::render('Business/Login', [
+                    'googleEnabled' => filled(config('services.google.client_id'))
+                        && filled(config('services.google.client_secret')),
+                    'status' => session('status'),
+                ]);
         });
     }
 

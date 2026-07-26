@@ -45,6 +45,7 @@ class DashboardController extends Controller
                 'total_businesses' => $businesses->count(),
                 'active_businesses' => $businesses->where('is_active', true)->count(),
             ],
+            'subscription' => $user->subscriptionPayload(),
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Business;
+use App\Models\BusinessUser;
 use Illuminate\Database\Seeder;
 
 class BusinessSeeder extends Seeder
@@ -13,18 +14,22 @@ class BusinessSeeder extends Seeder
     public function run(): void
     {
         // Create sample business users
-        $user1 = \App\Models\BusinessUser::create([
+        $user1 = BusinessUser::create([
             'name' => 'Mohamed El Amrani',
             'email' => 'mohamed@example.com',
             'phone' => '+212600111111',
             'password' => bcrypt('password'),
+            'is_premium' => true,
+            'trial_ends_at' => null,
         ]);
 
-        $user2 = \App\Models\BusinessUser::create([
+        $user2 = BusinessUser::create([
             'name' => 'Fatima Zahra',
             'email' => 'fatima@example.com',
             'phone' => '+212600222222',
             'password' => bcrypt('password'),
+            'is_premium' => true,
+            'trial_ends_at' => null,
         ]);
 
         $business = Business::create([

@@ -11,6 +11,8 @@ createInertiaApp({
         switch (true) {
             case name.startsWith('Admin/Login'):
             case name.startsWith('Business/Login'):
+            case name.startsWith('Business/Register'):
+            case name.startsWith('Marketing/'):
                 return null;
             default:
                 return AppLayout;

@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BusinessUser;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,7 +47,10 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'is_admin' => $user instanceof \App\Models\User,
+                    'is_admin' => $user instanceof User,
+                    'subscription' => $user instanceof BusinessUser
+                        ? $user->subscriptionPayload()
+                        : null,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

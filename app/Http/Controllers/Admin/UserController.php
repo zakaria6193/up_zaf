@@ -66,6 +66,8 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        $validated['is_premium'] = true;
+        $validated['trial_ends_at'] = null;
 
         BusinessUser::create($validated);
 

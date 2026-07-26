@@ -28,6 +28,12 @@ class PublicBusinessController extends Controller
             return Inertia::render('Public/NotFound');
         }
 
+        if (! $this->ownerPublicAccessAllowed($business)) {
+            return Inertia::render('Public/Unavailable', [
+                'businessName' => $business->name,
+            ]);
+        }
+
         // Track visit
         $this->trackVisit($business, $request);
 
@@ -113,6 +119,12 @@ class PublicBusinessController extends Controller
             return Inertia::render('Public/NotFound');
         }
 
+        if (! $this->ownerPublicAccessAllowed($business)) {
+            return Inertia::render('Public/Unavailable', [
+                'businessName' => $business->name,
+            ]);
+        }
+
         // Track visit
         $this->trackVisit($business, $request);
 
@@ -157,6 +169,21 @@ class PublicBusinessController extends Controller
                 ])->values(),
             ])->values(),
         ]);
+    }
+
+    /**
+     * Free accounts keep dashboard access, but public pages lock after the trial ends.
+     */
+    protected function ownerPublicAccessAllowed(Business $business): bool
+    {
+        $owner = $business->businessUser;
+
+        // Orphan / admin-only businesses stay publicly reachable.
+        if (! $owner) {
+            return true;
+        }
+
+        return $owner->publicPagesAccessible();
     }
 
     /**
