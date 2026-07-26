@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'artistic_qr' => [
+        // Absolute path to python, or leave null to auto-detect project venv / PATH.
+        'python' => env('ARTISTIC_QR_PYTHON'),
+        'script' => env('ARTISTIC_QR_SCRIPT', base_path('scripts/artistic_qr/generate.py')),
+        'version' => (int) env('ARTISTIC_QR_VERSION', 10),
+        'contrast' => (float) env('ARTISTIC_QR_CONTRAST', 1.15),
+        'brightness' => (float) env('ARTISTIC_QR_BRIGHTNESS', 1.05),
+        'timeout' => (int) env('ARTISTIC_QR_TIMEOUT', 90),
+    ],
+
 ];

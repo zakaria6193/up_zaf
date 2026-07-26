@@ -46,6 +46,7 @@ Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->
     Route::delete('links/{nanoid}/{link}', [LinkController::class, 'destroy'])->name('links.destroy');
     Route::post('links/{nanoid}/reorder', [LinkController::class, 'reorder'])->name('links.reorder');
     Route::get('menu', [App\Http\Controllers\Business\MenuController::class, 'index'])->name('menu');
+    Route::patch('menu/{nanoid}/currency', [App\Http\Controllers\Business\MenuController::class, 'updateCurrency'])->name('menu.currency.update');
     Route::post('menu/{nanoid}/categories', [App\Http\Controllers\Business\MenuController::class, 'storeCategory'])->name('menu.categories.store');
     Route::put('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'updateCategory'])->name('menu.categories.update');
     Route::delete('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'destroyCategory'])->name('menu.categories.destroy');
@@ -56,6 +57,8 @@ Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->
     Route::post('menu/{nanoid}/categories/{category}/items/reorder', [App\Http\Controllers\Business\MenuController::class, 'reorderItems'])->name('menu.items.reorder');
     Route::patch('menu/{nanoid}/categories/{category}/items/{item}/toggle-active', [App\Http\Controllers\Business\MenuController::class, 'toggleItemActive'])->name('menu.items.toggle-active');
     Route::get('qr-code', [QRCodeController::class, 'index'])->name('qr-code');
+    Route::patch('qr-code/{nanoid}/style', [QRCodeController::class, 'updateStyle'])->name('qr-code.style');
+    Route::patch('qr-code/{nanoid}/text', [QRCodeController::class, 'updateText'])->name('qr-code.text');
     Route::get('settings', [App\Http\Controllers\Business\SettingsController::class, 'index'])->name('settings');
     Route::put('settings/password', [App\Http\Controllers\Business\SettingsController::class, 'updatePassword'])->name('settings.password');
 });
@@ -99,6 +102,8 @@ Route::prefix('adminos')->name('admin.')->group(function () {
         // Business Menu
         Route::get('businesses/{business}/menu', [MenuController::class, 'index'])
             ->name('businesses.menu.index');
+        Route::patch('businesses/{business}/menu/currency', [MenuController::class, 'updateCurrency'])
+            ->name('businesses.menu.currency.update');
         Route::post('businesses/{business}/categories', [MenuController::class, 'storeCategory'])
             ->name('businesses.categories.store');
         Route::put('businesses/{business}/categories/{category}', [MenuController::class, 'updateCategory'])

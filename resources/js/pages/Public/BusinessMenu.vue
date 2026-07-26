@@ -2,6 +2,10 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { ArrowLeft, MapPin, Share2 } from 'lucide-vue-next';
+import MenuPanier from '@/components/Public/MenuPanier.vue';
+import MenuItemAddControl from '@/components/Public/MenuItemAddControl.vue';
+import { useMenuPanier } from '@/composables/useMenuPanier';
+import { formatMoney } from '@/lib/money';
 
 defineOptions({
     layout: false, // No layout - standalone public page
@@ -14,6 +18,7 @@ const props = defineProps<{
         address: string | null;
         logo: string | null;
         color: string;
+        currency: string;
         seo_title: string | null;
         seo_description: string | null;
         lat: number | null;
@@ -43,6 +48,19 @@ const props = defineProps<{
     }>;
 }>();
 
+const {
+    list: panierList,
+    isOpen: panierOpen,
+    totalQuantity,
+    totalPrice,
+    quantityOf,
+    addItem,
+    increment,
+    decrement,
+    removeItem,
+    clear: clearPanier,
+} = useMenuPanier(props.business.nanoid);
+
 // Open Google Maps for directions
 const openMaps = () => {
     if (props.business.lat && props.business.lng) {
@@ -55,15 +73,8 @@ const openMaps = () => {
 // Apply brand color as CSS variable
 const brandColor = computed(() => props.business.color || '#3b82f6');
 
-// Format price in MAD
-const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-MA', {
-        style: 'currency',
-        currency: 'MAD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-    }).format(price);
-};
+// Format price with business currency
+const formatPrice = (price: number) => formatMoney(price, props.business.currency || 'MAD');
 
 // Share menu
 const shareMenu = async () => {
@@ -173,7 +184,7 @@ const shareMenu = async () => {
             </div>
 
             <!-- Categories -->
-            <div v-else class="space-y-8">
+            <div v-else class="space-y-8 pb-24">
                 <div
                     v-for="category in categories"
                     :key="category.id"
@@ -222,6 +233,14 @@ const shareMenu = async () => {
                                         {{ item.description }}
                                     </p>
                                 </div>
+
+                                <MenuItemAddControl
+                                    :quantity="quantityOf(item.id)"
+                                    :brand-color="brandColor"
+                                    @add="addItem(item)"
+                                    @increment="increment(item.id)"
+                                    @decrement="decrement(item.id)"
+                                />
                             </div>
                         </div>
                     </div>
@@ -273,6 +292,14 @@ const shareMenu = async () => {
                                                 {{ item.description }}
                                             </p>
                                         </div>
+
+                                        <MenuItemAddControl
+                                            :quantity="quantityOf(item.id)"
+                                            :brand-color="brandColor"
+                                            @add="addItem(item)"
+                                            @increment="increment(item.id)"
+                                            @decrement="decrement(item.id)"
+                                        />
                                     </div>
                                 </div>
 
@@ -292,11 +319,24 @@ const shareMenu = async () => {
             </div>
 
             <!-- Powered By -->
-            <div class="text-center mt-12">
+            <div class="text-center mt-12 pb-24">
                 <p class="text-sm text-gray-500">
                     Powered by <span class="font-semibold">UP1</span>
                 </p>
             </div>
         </div>
+
+        <MenuPanier
+            v-model:open="panierOpen"
+            :brand-color="brandColor"
+            :currency="business.currency"
+            :items="panierList"
+            :total-quantity="totalQuantity"
+            :total-price="totalPrice"
+            @increment="increment"
+            @decrement="decrement"
+            @remove="removeItem"
+            @clear="clearPanier"
+        />
     </div>
 </template>

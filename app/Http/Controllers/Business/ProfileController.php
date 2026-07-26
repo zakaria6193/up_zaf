@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Support\Currency;
+use App\Support\QrStyle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -45,13 +48,17 @@ class ProfileController extends Controller
                 'lng' => $business->lng !== null ? (float) $business->lng : null,
                 'logo' => $business->logoUrl(),
                 'color' => $business->color ?? '#3b82f6',
+                'currency' => $business->currencyCode(),
                 'is_active' => $business->is_active,
                 'seo_title' => $business->seo_title,
                 'seo_description' => $business->seo_description,
                 'seo_keywords' => $business->seo_keywords,
                 'qr_code' => $business->qrCodeUrl(),
+                'qr_style' => $business->qrStyleCode(),
                 'public_url' => $business->publicUrl(),
             ],
+            'currencies' => Currency::forFrontend(),
+            'qrStyles' => QrStyle::forFrontend(),
             'userBusinesses' => $user->businesses->map(fn ($b) => [
                 'nanoid' => $b->nanoid,
                 'name' => $b->name,
@@ -68,12 +75,16 @@ class ProfileController extends Controller
         $user = auth()->user();
         $business = $user->businesses()->where('nanoid', $nanoid)->firstOrFail();
 
+        $hasLogo = $request->hasFile('logo') || filled($business->logo);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
             'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'currency' => ['required', 'string', 'size:3', Rule::in(Currency::codes())],
+            'qr_style' => ['required', 'string', Rule::in(QrStyle::codes($hasLogo))],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
             'seo_keywords' => ['nullable', 'string', 'max:500'],
@@ -90,10 +101,14 @@ class ProfileController extends Controller
             $validated['logo'] = $this->processLogo($request->file('logo'));
         }
 
+        $shouldRegenerateQr = ($validated['name'] ?? null) !== $business->name
+            || ($validated['color'] ?? $business->color) !== $business->color
+            || ($validated['qr_style'] ?? null) !== $business->qr_style
+            || $request->hasFile('logo');
+
         $business->update($validated);
 
-        // Regenerate QR code if URL-related data changed
-        if (isset($validated['name'])) {
+        if ($shouldRegenerateQr) {
             $business->generateQrCode();
         }
 
@@ -110,7 +125,14 @@ class ProfileController extends Controller
 
         if ($business->logo) {
             Storage::disk('public')->delete($business->logo);
-            $business->update(['logo' => null]);
+            $updates = ['logo' => null];
+
+            if (QrStyle::requiresLogo((string) $business->qr_style)) {
+                $updates['qr_style'] = QrStyle::default();
+            }
+
+            $business->update($updates);
+            $business->generateQrCode();
         }
 
         return back()->with('success', 'Logo deleted successfully!');

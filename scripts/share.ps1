@@ -1,5 +1,5 @@
 # Share UP1 temporarily with someone on another network.
-# Does NOT change .env. Stop the script (Ctrl+C) when done — local work stays as before.
+# Does NOT change .env. Stop the script (Ctrl+C) when done - local work stays as before.
 #
 # Usage (from project root):
 #   powershell -ExecutionPolicy Bypass -File .\scripts\share.ps1
@@ -19,6 +19,10 @@ function Write-Step($message) {
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
     [System.Environment]::GetEnvironmentVariable("Path", "User")
 
+if (Test-Path "C:\php84\php.exe") {
+    $env:Path = "C:\php84;" + $env:Path
+}
+
 $cloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue
 if (-not $cloudflared) {
     Write-Host "cloudflared is not installed or not on PATH." -ForegroundColor Red
@@ -33,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "npm run build failed"
 }
 
-# public/hot forces the browser to Vite on localhost — remote users cannot use that.
+# public/hot forces the browser to Vite on localhost - remote users cannot use that.
 $hotFile = Join-Path $ProjectRoot "public\hot"
 $hotBackup = Join-Path $ProjectRoot "public\hot.sharebak"
 $movedHot = $false
@@ -56,17 +60,10 @@ function Test-LocalApp {
 }
 
 if (Test-LocalApp) {
-    Write-Step "Laravel already responding on http://127.0.0.1:8000 — reusing it"
+    Write-Step "Laravel already responding on http://127.0.0.1:8000 - reusing it"
 } else {
     Write-Step "Starting php artisan serve on 127.0.0.1:8000"
-    $php = Get-Command php -ErrorAction SilentlyContinue
-    if (-not $php) {
-        # Common local install path used in this project
-        if (Test-Path "C:\php84\php.exe") {
-            $env:Path = "C:\php84;" + $env:Path
-        }
-    }
-    $serveProcess = Start-Process -FilePath "php" -ArgumentList @("artisan", "serve", "--host=127.0.0.1", "--port=8000") -WorkingDirectory $ProjectRoot -PassThru -WindowStyle Minimized
+    $serveProcess = Start-Process -FilePath "php" -ArgumentList "artisan","serve","--host=127.0.0.1","--port=8000" -WorkingDirectory $ProjectRoot -PassThru -WindowStyle Minimized
     $startedServe = $true
     Start-Sleep -Seconds 2
     if (-not (Test-LocalApp)) {

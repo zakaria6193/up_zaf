@@ -71,6 +71,10 @@
             "Composer\\Config::disableProcessTimeout",
             "powershell -ExecutionPolicy Bypass -File scripts/share.ps1"
         ],
+        "setup:artistic-qr": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan qr:setup-artistic"
+        ],
         "lint": [
             "pint --parallel"
         ],

@@ -21,6 +21,25 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value?.is_admin);
 
+const selectedBusinessNanoid = computed(() => {
+    const query = page.url.includes('?') ? page.url.split('?')[1] : '';
+    return new URLSearchParams(query).get('business');
+});
+
+const withSelectedBusiness = (href: string): string => {
+    if (!selectedBusinessNanoid.value) {
+        return href;
+    }
+
+    // Dashboard and settings are account-level, not per-business.
+    if (href === '/business/dashboard' || href === '/business/settings') {
+        return href;
+    }
+
+    const separator = href.includes('?') ? '&' : '?';
+    return `${href}${separator}business=${encodeURIComponent(selectedBusinessNanoid.value)}`;
+};
+
 const adminNavItems: NavItem[] = [
     {
         title: 'Tableau de bord',
@@ -49,7 +68,7 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
-const businessNavItems: NavItem[] = [
+const businessNavItems = computed<NavItem[]>(() => [
     {
         title: 'Tableau de bord',
         href: '/business/dashboard',
@@ -57,22 +76,22 @@ const businessNavItems: NavItem[] = [
     },
     {
         title: 'Mon Entreprise',
-        href: '/business/profile',
+        href: withSelectedBusiness('/business/profile'),
         icon: Building2,
     },
     {
         title: 'Code QR',
-        href: '/business/qr-code',
+        href: withSelectedBusiness('/business/qr-code'),
         icon: QrCode,
     },
     {
         title: 'Liens',
-        href: '/business/links',
+        href: withSelectedBusiness('/business/links'),
         icon: LinkIcon,
     },
     {
         title: 'Menu',
-        href: '/business/menu',
+        href: withSelectedBusiness('/business/menu'),
         icon: Menu,
     },
     {
@@ -80,9 +99,9 @@ const businessNavItems: NavItem[] = [
         href: '/business/settings',
         icon: Settings,
     },
-];
+]);
 
-const mainNavItems = computed(() => isAdmin.value ? adminNavItems : businessNavItems);
+const mainNavItems = computed(() => isAdmin.value ? adminNavItems : businessNavItems.value);
 const dashboardHref = computed(() => isAdmin.value ? '/adminos/dashboard' : '/business/dashboard');
 </script>
 

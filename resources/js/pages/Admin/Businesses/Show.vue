@@ -8,6 +8,7 @@ import { Edit, ExternalLink, QrCode, Trash2, Copy, Check } from 'lucide-vue-next
 import { edit, destroy, index } from '@/actions/App/Http/Controllers/Admin/BusinessController';
 import { index as linksIndex } from '@/actions/App/Http/Controllers/Admin/BusinessLinkController';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import { formatMoney } from '@/lib/money';
 import { ref, onMounted, watch } from 'vue';
 
 defineOptions({
@@ -28,6 +29,7 @@ const props = defineProps<{
         lat: number | null;
         lng: number | null;
         color: string;
+        currency: string;
         logo: string | null;
         public_url: string;
         qr_code: string | null;
@@ -384,7 +386,7 @@ watch(activeTab, (newTab) => {
                                                 {{ item.description }}
                                             </p>
                                         </div>
-                                        <p class="font-semibold">{{ item.price }} MAD</p>
+                                        <p class="font-semibold">{{ formatMoney(item.price, business.currency) }}</p>
                                     </div>
                                 </div>
                             </div>

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, X, Save, Trash2 } from 'lucide-vue-next';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import LocationPicker from '@/components/LocationPicker.vue';
+import QrStylePicker from '@/components/QrStylePicker.vue';
 import { update, deleteLogo as deleteLogoRoute } from '@/actions/App/Http/Controllers/Business/ProfileController';
 
 const props = defineProps<{
@@ -22,6 +23,8 @@ const props = defineProps<{
         lng: number | null;
         logo: string | null;
         color: string;
+        currency: string;
+        qr_style: string;
         is_active: boolean;
         seo_title: string | null;
         seo_description: string | null;
@@ -29,6 +32,20 @@ const props = defineProps<{
         qr_code: string | null;
         public_url: string;
     };
+    currencies: Array<{
+        code: string;
+        name: string;
+        symbol: string;
+        label: string;
+    }>;
+    qrStyles: Array<{
+        id: string;
+        name: string;
+        tagline: string;
+        subtitle: string;
+        description: string;
+        requires_logo?: boolean;
+    }>;
     userBusinesses: Array<{
         nanoid: string;
         name: string;
@@ -42,6 +59,8 @@ const form = useForm({
     lat: props.business.lat !== null ? Number(props.business.lat) : null,
     lng: props.business.lng !== null ? Number(props.business.lng) : null,
     color: props.business.color,
+    currency: props.business.currency || 'MAD',
+    qr_style: props.business.qr_style || 'pulse',
     seo_title: props.business.seo_title,
     seo_description: props.business.seo_description,
     seo_keywords: props.business.seo_keywords,
@@ -300,6 +319,33 @@ const handleTabChange = (value: string | number) => {
                                 />
                             </div>
                             <p v-if="form.errors.color" class="text-sm text-red-600">{{ form.errors.color }}</p>
+                        </div>
+
+                        <!-- Currency -->
+                        <div class="space-y-2">
+                            <Label for="currency">Currency</Label>
+                            <select
+                                id="currency"
+                                v-model="form.currency"
+                                class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                                required
+                            >
+                                <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
+                                    {{ currency.label }}
+                                </option>
+                            </select>
+                            <p v-if="form.errors.currency" class="text-sm text-red-600">{{ form.errors.currency }}</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label>QR Card Design</Label>
+                            <QrStylePicker
+                                v-model="form.qr_style"
+                                :styles="qrStyles"
+                                :brand-color="form.color"
+                                :has-logo="!!logoPreview || !!business.logo"
+                            />
+                            <p v-if="form.errors.qr_style" class="text-sm text-red-600">{{ form.errors.qr_style }}</p>
                         </div>
 
                         <div class="flex items-center gap-3 pt-4">

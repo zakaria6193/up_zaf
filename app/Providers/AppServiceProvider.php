@@ -95,5 +95,10 @@ class AppServiceProvider extends ServiceProvider
         if ($request->headers->get('X-Forwarded-Proto') === 'https') {
             URL::forceScheme('https');
         }
+
+        // Storage::url() reads this config (not URL::forceRootUrl), so update it for tunnels.
+        config([
+            'filesystems.disks.public.url' => $request->getSchemeAndHttpHost().'/storage',
+        ]);
     }
 }

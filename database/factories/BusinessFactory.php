@@ -25,6 +25,8 @@ class BusinessFactory extends Factory
             'lat' => fake()->latitude(),
             'lng' => fake()->longitude(),
             'color' => fake()->hexColor(),
+            'currency' => 'MAD',
+            'qr_style' => 'pulse',
             'is_active' => true,
             'seo_title' => fake()->sentence(),
             'seo_description' => fake()->paragraph(),

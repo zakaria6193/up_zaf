@@ -5,10 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Plus, Edit, Trash2, Save, X, FolderPlus } from 'lucide-vue-next';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
+import MenuCurrencySelect from '@/components/MenuCurrencySelect.vue';
+import MenuItemForm from '@/components/MenuItemForm.vue';
 import { Switch } from '@/components/ui/switch';
+import { formatMoney } from '@/lib/money';
 import {
     storeCategory,
     updateCategory,
@@ -17,6 +20,7 @@ import {
     updateItem,
     destroyItem,
     toggleItemActive,
+    updateCurrency,
 } from '@/actions/App/Http/Controllers/Business/MenuController';
 
 interface MenuItem {
@@ -50,7 +54,14 @@ const props = defineProps<{
     business: {
         nanoid: string;
         name: string;
+        currency: string;
     };
+    currencies: Array<{
+        code: string;
+        name: string;
+        symbol: string;
+        label: string;
+    }>;
     categories: Category[];
     userBusinesses: Array<{
         nanoid: string;
@@ -63,6 +74,8 @@ const showAddSubcategoryForm = ref<number | null>(null);
 const showAddItemForm = ref<{categoryId: number; subcategoryId?: number} | null>(null);
 const editingCategoryId = ref<number | null>(null);
 const editingItemId = ref<number | null>(null);
+const selectedCurrency = ref(props.business.currency || 'MAD');
+const itemImagePreview = ref<string | null>(null);
 
 const addCategoryForm = useForm({
     name: '',
@@ -77,13 +90,50 @@ const addItemForm = useForm({
     name: '',
     description: '',
     price: '',
+    image: null as File | null,
 });
 
 const editItemForm = useForm({
     name: '',
     description: '',
     price: '',
+    image: null as File | null,
 });
+
+const handleCurrencyChange = (currency: string) => {
+    selectedCurrency.value = currency;
+    router.patch(updateCurrency.url(props.business.nanoid), { currency }, {
+        preserveScroll: true,
+    });
+};
+
+const handleImageChange = (event: Event, formType: 'add' | 'edit') => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (file) {
+        const targetForm = formType === 'add' ? addItemForm : editItemForm;
+        targetForm.image = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            itemImagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeItemImage = (formType: 'add' | 'edit') => {
+    const targetForm = formType === 'add' ? addItemForm : editItemForm;
+    targetForm.image = null;
+    itemImagePreview.value = null;
+};
+
+watch(
+    () => props.business.currency,
+    (currency) => {
+        selectedCurrency.value = currency || 'MAD';
+    },
+);
 
 const sortedCategories = computed(() => {
     const categories = Array.isArray(props.categories) ? props.categories : Object.values(props.categories ?? {});
@@ -159,13 +209,15 @@ const handleDeleteCategory = (categoryId: number, categoryName: string) => {
     }
 };
 
-// Item handlers (inline quick add)
+// Item handlers
 const handleQuickAddItem = (categoryId: number, subcategoryId?: number) => {
     const targetCategoryId = subcategoryId || categoryId;
     addItemForm.post(storeItem.url([props.business.nanoid, targetCategoryId]), {
         preserveScroll: true,
+        forceFormData: true,
         onSuccess: () => {
             addItemForm.reset();
+            itemImagePreview.value = null;
             showAddItemForm.value = null;
         },
     });
@@ -176,19 +228,24 @@ const startEditItem = (item: MenuItem) => {
     editItemForm.name = item.name;
     editItemForm.description = item.description || '';
     editItemForm.price = item.price;
+    editItemForm.image = null;
+    itemImagePreview.value = item.image;
 };
 
 const cancelEditItem = () => {
     editingItemId.value = null;
     editItemForm.reset();
+    itemImagePreview.value = null;
 };
 
 const handleUpdateItem = (categoryId: number, itemId: number) => {
     editItemForm.post(updateItem.url([props.business.nanoid, categoryId, itemId]), {
         preserveScroll: true,
+        forceFormData: true,
         onSuccess: () => {
             editingItemId.value = null;
             editItemForm.reset();
+            itemImagePreview.value = null;
         },
     });
 };
@@ -220,11 +277,22 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
             </div>
 
             <!-- Business Selector (if multiple businesses) -->
-            <BusinessSwitcher
-                :businesses="userBusinesses"
-                :current-nanoid="business.nanoid"
-                label="Managing:"
-            />
+            <div class="flex flex-col items-end gap-3 sm:flex-row sm:items-start">
+                <div class="w-56">
+                    <MenuCurrencySelect
+                        id="menu-page-currency"
+                        :model-value="selectedCurrency"
+                        :currencies="currencies"
+                        label="Menu currency"
+                        @update:model-value="handleCurrencyChange"
+                    />
+                </div>
+                <BusinessSwitcher
+                    :businesses="userBusinesses"
+                    :current-nanoid="business.nanoid"
+                    label="Managing:"
+                />
+            </div>
         </div>
 
         <!-- Quick Add Category Form -->
@@ -354,15 +422,21 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
 
                         <!-- Quick Add Item Form -->
                         <div v-if="showAddItemForm?.categoryId === category.id && !showAddItemForm.subcategoryId" class="bg-blue-50 rounded-lg p-3 border border-blue-200 mb-3">
-                            <form @submit.prevent="handleQuickAddItem(category.id)" class="grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                                <Input v-model="addItemForm.name" type="text" placeholder="Item name" required size="sm" />
-                                <Input v-model="addItemForm.price" type="number" step="0.01" placeholder="Price" required size="sm" />
-                                <Input v-model="addItemForm.description" type="text" placeholder="Description (optional)" size="sm" />
-                                <div class="flex gap-1">
-                                    <Button type="submit" size="sm" :disabled="addItemForm.processing">Add</Button>
-                                    <Button type="button" size="sm" variant="ghost" @click="showAddItemForm = null"><X class="h-3 w-3" /></Button>
-                                </div>
-                            </form>
+                            <MenuItemForm
+                                v-model:name="addItemForm.name"
+                                v-model:price="addItemForm.price"
+                                v-model:description="addItemForm.description"
+                                :currency="selectedCurrency"
+                                :currencies="currencies"
+                                :image-preview="itemImagePreview"
+                                :processing="addItemForm.processing"
+                                submit-label="Add item"
+                                @update:currency="handleCurrencyChange"
+                                @image-change="handleImageChange($event, 'add')"
+                                @remove-image="removeItemImage('add')"
+                                @submit="handleQuickAddItem(category.id)"
+                                @cancel="showAddItemForm = null; removeItemImage('add')"
+                            />
                         </div>
 
                         <!-- Category Items List -->
@@ -373,23 +447,39 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
                                 class="flex items-center justify-between p-2 rounded border bg-white hover:bg-gray-50"
                                 :class="{ 'opacity-60': !item.is_active }"
                             >
-                                <div v-if="editingItemId !== item.id" class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <p class="font-medium text-sm">{{ item.name }}</p>
-                                        <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                <div v-if="editingItemId !== item.id" class="flex flex-1 items-center gap-3">
+                                    <img
+                                        v-if="item.image"
+                                        :src="item.image"
+                                        :alt="item.name"
+                                        class="h-12 w-12 rounded object-cover border"
+                                    />
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-medium text-sm">{{ item.name }}</p>
+                                            <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                        </div>
+                                        <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
+                                        <p class="text-sm font-semibold text-primary">{{ formatMoney(item.price, business.currency) }}</p>
                                     </div>
-                                    <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
-                                    <p class="text-sm font-semibold text-primary">{{ item.price }} MAD</p>
                                 </div>
-                                <form v-else @submit.prevent="handleUpdateItem(category.id, item.id)" class="flex-1 grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                                    <Input v-model="editItemForm.name" type="text" placeholder="Item name" size="sm" required />
-                                    <Input v-model="editItemForm.price" type="number" step="0.01" placeholder="Price" size="sm" required />
-                                    <Input v-model="editItemForm.description" type="text" placeholder="Description (optional)" size="sm" />
-                                    <div class="flex gap-1">
-                                        <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
-                                        <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
-                                    </div>
-                                </form>
+                                <div v-else class="flex-1">
+                                    <MenuItemForm
+                                        v-model:name="editItemForm.name"
+                                        v-model:price="editItemForm.price"
+                                        v-model:description="editItemForm.description"
+                                        :currency="selectedCurrency"
+                                        :currencies="currencies"
+                                        :image-preview="itemImagePreview"
+                                        :processing="editItemForm.processing"
+                                        submit-label="Save"
+                                        @update:currency="handleCurrencyChange"
+                                        @image-change="handleImageChange($event, 'edit')"
+                                        @remove-image="removeItemImage('edit')"
+                                        @submit="handleUpdateItem(category.id, item.id)"
+                                        @cancel="cancelEditItem"
+                                    />
+                                </div>
                                 <div v-if="editingItemId !== item.id" class="flex items-center gap-2">
                                     <Switch
                                         :checked="item.is_active"
@@ -445,15 +535,21 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
 
                             <!-- Quick Add Item for Subcategory -->
                             <div v-if="showAddItemForm?.categoryId === category.id && showAddItemForm?.subcategoryId === subcategory.id" class="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                                <form @submit.prevent="handleQuickAddItem(category.id, subcategory.id)" class="grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                                    <Input v-model="addItemForm.name" type="text" placeholder="Item name" required size="sm" />
-                                    <Input v-model="addItemForm.price" type="number" step="0.01" placeholder="Price" required size="sm" />
-                                    <Input v-model="addItemForm.description" type="text" placeholder="Description" size="sm" />
-                                    <div class="flex gap-1">
-                                        <Button type="submit" size="sm" :disabled="addItemForm.processing">Add</Button>
-                                        <Button type="button" size="sm" variant="ghost" @click="showAddItemForm = null"><X class="h-3 w-3" /></Button>
-                                    </div>
-                                </form>
+                                <MenuItemForm
+                                    v-model:name="addItemForm.name"
+                                    v-model:price="addItemForm.price"
+                                    v-model:description="addItemForm.description"
+                                    :currency="selectedCurrency"
+                                    :currencies="currencies"
+                                    :image-preview="itemImagePreview"
+                                    :processing="addItemForm.processing"
+                                    submit-label="Add item"
+                                    @update:currency="handleCurrencyChange"
+                                    @image-change="handleImageChange($event, 'add')"
+                                    @remove-image="removeItemImage('add')"
+                                    @submit="handleQuickAddItem(category.id, subcategory.id)"
+                                    @cancel="showAddItemForm = null; removeItemImage('add')"
+                                />
                             </div>
 
                             <!-- Subcategory Items -->
@@ -464,23 +560,39 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
                                     class="flex items-center justify-between p-2 rounded border bg-white hover:bg-gray-50"
                                     :class="{ 'opacity-60': !item.is_active }"
                                 >
-                                    <div v-if="editingItemId !== item.id" class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <p class="font-medium text-sm">{{ item.name }}</p>
-                                            <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                    <div v-if="editingItemId !== item.id" class="flex flex-1 items-center gap-3">
+                                        <img
+                                            v-if="item.image"
+                                            :src="item.image"
+                                            :alt="item.name"
+                                            class="h-12 w-12 rounded object-cover border"
+                                        />
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <p class="font-medium text-sm">{{ item.name }}</p>
+                                                <Badge v-if="!item.is_active" variant="secondary" class="text-xs">Unavailable</Badge>
+                                            </div>
+                                            <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
+                                            <p class="text-sm font-semibold text-primary">{{ formatMoney(item.price, business.currency) }}</p>
                                         </div>
-                                        <p v-if="item.description" class="text-xs text-gray-600">{{ item.description }}</p>
-                                        <p class="text-sm font-semibold text-primary">{{ item.price }} MAD</p>
                                     </div>
-                                    <form v-else @submit.prevent="handleUpdateItem(subcategory.id, item.id)" class="flex-1 grid grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                                        <Input v-model="editItemForm.name" type="text" placeholder="Item name" size="sm" required />
-                                        <Input v-model="editItemForm.price" type="number" step="0.01" placeholder="Price" size="sm" required />
-                                        <Input v-model="editItemForm.description" type="text" placeholder="Description (optional)" size="sm" />
-                                        <div class="flex gap-1">
-                                            <Button type="submit" size="sm"><Save class="h-3 w-3" /></Button>
-                                            <Button type="button" size="sm" variant="ghost" @click="cancelEditItem"><X class="h-3 w-3" /></Button>
-                                        </div>
-                                    </form>
+                                    <div v-else class="flex-1">
+                                        <MenuItemForm
+                                            v-model:name="editItemForm.name"
+                                            v-model:price="editItemForm.price"
+                                            v-model:description="editItemForm.description"
+                                            :currency="selectedCurrency"
+                                            :currencies="currencies"
+                                            :image-preview="itemImagePreview"
+                                            :processing="editItemForm.processing"
+                                            submit-label="Save"
+                                            @update:currency="handleCurrencyChange"
+                                            @image-change="handleImageChange($event, 'edit')"
+                                            @remove-image="removeItemImage('edit')"
+                                            @submit="handleUpdateItem(subcategory.id, item.id)"
+                                            @cancel="cancelEditItem"
+                                        />
+                                    </div>
                                     <div v-if="editingItemId !== item.id" class="flex items-center gap-2">
                                         <Switch
                                             :checked="item.is_active"

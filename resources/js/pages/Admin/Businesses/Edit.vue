@@ -22,6 +22,8 @@ import {
 import { ref, computed, watch, nextTick } from 'vue';
 import { X, Plus, Edit, Trash2, Save, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import LocationPicker from '@/components/LocationPicker.vue';
+import QrStylePicker from '@/components/QrStylePicker.vue';
+import { currencyLabel, formatMoney } from '@/lib/money';
 
 defineOptions({
     layout: {
@@ -41,11 +43,15 @@ const props = defineProps<{
         lat: number | null;
         lng: number | null;
         color: string;
+        currency: string;
+        qr_style: string;
         logo: string | null;
         seo_title: string | null;
         seo_description: string | null;
         seo_keywords: string | null;
     };
+    currencies: Array<{ code: string; name: string; symbol: string; label: string }>;
+    qrStyles: Array<{ id: string; name: string; tagline: string; subtitle: string; description: string; requires_logo?: boolean }>;
     categories: Array<{
         id: number;
         name: string;
@@ -72,6 +78,8 @@ const form = useForm({
     lng: props.business.lng,
     logo: null as File | null,
     color: props.business.color,
+    currency: props.business.currency || 'MAD',
+    qr_style: props.business.qr_style || 'pulse',
     seo_title: props.business.seo_title || '',
     seo_description: props.business.seo_description || '',
     seo_keywords: props.business.seo_keywords || '',
@@ -449,6 +457,36 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                     {{ form.errors.color }}
                                 </p>
                             </div>
+
+                            <div class="space-y-2">
+                                <Label for="currency">Currency *</Label>
+                                <select
+                                    id="currency"
+                                    v-model="form.currency"
+                                    class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                                    required
+                                >
+                                    <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
+                                        {{ currency.label }}
+                                    </option>
+                                </select>
+                                <p v-if="form.errors.currency" class="text-sm text-destructive">
+                                    {{ form.errors.currency }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label>QR Card Design *</Label>
+                                <QrStylePicker
+                                    v-model="form.qr_style"
+                                    :styles="qrStyles"
+                                    :brand-color="form.color"
+                                    :has-logo="!!logoPreview || !!business.logo"
+                                />
+                                <p v-if="form.errors.qr_style" class="text-sm text-destructive">
+                                    {{ form.errors.qr_style }}
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -606,7 +644,7 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                                 <Input v-model="addItemForm.name" type="text" placeholder="Caesar Salad" required />
                                             </div>
                                             <div class="space-y-2">
-                                                <Label>Price (MAD) *</Label>
+                                                <Label>Price ({{ currencyLabel(business.currency) }}) *</Label>
                                                 <Input v-model="addItemForm.price" type="number" step="0.01" placeholder="45.00" required />
                                             </div>
                                         </div>
@@ -672,7 +710,7 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                                 <p v-if="item.description" class="text-sm text-muted-foreground">
                                                     {{ item.description }}
                                                 </p>
-                                                <p class="mt-1 font-semibold text-primary">{{ item.price }} MAD</p>
+                                                <p class="mt-1 font-semibold text-primary">{{ formatMoney(item.price, business.currency) }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
@@ -714,7 +752,7 @@ const moveItemDown = (categoryId: number, item: typeof props.categories[0]['item
                                                 <Input v-model="editItemForm.name" type="text" required />
                                             </div>
                                             <div class="space-y-2">
-                                                <Label>Price (MAD) *</Label>
+                                                <Label>Price ({{ currencyLabel(business.currency) }}) *</Label>
                                                 <Input v-model="editItemForm.price" type="number" step="0.01" required />
                                             </div>
                                         </div>

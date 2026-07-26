@@ -27,3 +27,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/scripts/artistic_qr/.venv
+/storage/app/tmp
+/storage/app/emblem_*.png

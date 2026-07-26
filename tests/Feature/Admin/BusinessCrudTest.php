@@ -87,6 +87,8 @@ class BusinessCrudTest extends TestCase
                 'lat' => 33.5731,
                 'lng' => -7.5898,
                 'color' => '#3b82f6',
+                'currency' => 'EUR',
+                'qr_style' => 'pulse',
             ]);
 
         $response->assertRedirect();
@@ -94,6 +96,8 @@ class BusinessCrudTest extends TestCase
         $this->assertDatabaseHas('businesses', [
             'name' => 'New Business',
             'address' => '456 New Street',
+            'currency' => 'EUR',
+            'qr_style' => 'pulse',
         ]);
 
         $business = Business::where('name', 'New Business')->first();
@@ -116,6 +120,8 @@ class BusinessCrudTest extends TestCase
                 'name' => 'Business With Logo',
                 'business_user_id' => $businessUser->id,
                 'color' => '#3b82f6',
+                'currency' => 'MAD',
+                'qr_style' => 'pulse',
                 'logo' => $logo,
             ]);
 
@@ -133,7 +139,7 @@ class BusinessCrudTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->post(route('admin.businesses.store'), []);
 
-        $response->assertSessionHasErrors(['name']);
+        $response->assertSessionHasErrors(['name', 'color', 'currency', 'qr_style']);
     }
 
     public function test_admin_can_view_edit_business_page(): void
@@ -156,6 +162,8 @@ class BusinessCrudTest extends TestCase
                 'name' => 'New Name',
                 'address' => $business->address,
                 'color' => $business->color,
+                'currency' => $business->currency ?? 'MAD',
+                'qr_style' => $business->qr_style ?? 'pulse',
             ]);
 
         $response->assertRedirect();
@@ -177,6 +185,8 @@ class BusinessCrudTest extends TestCase
                 'lat' => 34.0522,
                 'lng' => -118.2437,
                 'color' => $business->color,
+                'currency' => $business->currency ?? 'MAD',
+                'qr_style' => $business->qr_style ?? 'pulse',
             ]);
 
         $response->assertRedirect();
@@ -202,6 +212,8 @@ class BusinessCrudTest extends TestCase
             ->put(route('admin.businesses.update', $business->nanoid), [
                 'name' => $business->name,
                 'color' => $business->color,
+                'currency' => $business->currency ?? 'MAD',
+                'qr_style' => $business->qr_style ?? 'pulse',
                 'logo' => $newLogo,
             ]);
 
@@ -249,6 +261,8 @@ class BusinessCrudTest extends TestCase
                 'name' => 'QR Test Business',
                 'business_user_id' => $businessUser->id,
                 'color' => '#3b82f6',
+                'currency' => 'USD',
+                'qr_style' => 'noir',
             ]);
 
         $business = Business::where('name', 'QR Test Business')->first();

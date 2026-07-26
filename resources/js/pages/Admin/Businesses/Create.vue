@@ -9,6 +9,7 @@ import { store, index } from '@/actions/App/Http/Controllers/Admin/BusinessContr
 import { ref } from 'vue';
 import { X } from 'lucide-vue-next';
 import LocationPicker from '@/components/LocationPicker.vue';
+import QrStylePicker from '@/components/QrStylePicker.vue';
 
 defineOptions({
     layout: {
@@ -20,6 +21,12 @@ defineOptions({
     },
 });
 
+const props = defineProps<{
+    businessUsers: Array<{ id: number; name: string; email: string }>;
+    currencies: Array<{ code: string; name: string; symbol: string; label: string }>;
+    qrStyles: Array<{ id: string; name: string; tagline: string; subtitle: string; description: string; requires_logo?: boolean }>;
+}>();
+
 const form = useForm({
     name: '',
     address: '',
@@ -27,6 +34,8 @@ const form = useForm({
     lng: null as number | null,
     logo: null as File | null,
     color: '#4d54d9',
+    currency: 'MAD',
+    qr_style: 'pulse',
     seo_title: '',
     seo_description: '',
     seo_keywords: '',
@@ -167,6 +176,41 @@ const submit = () => {
                             {{ form.errors.color }}
                         </p>
                     </div>
+
+                    <div class="space-y-2">
+                        <Label for="currency">Currency *</Label>
+                        <select
+                            id="currency"
+                            v-model="form.currency"
+                            class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                            required
+                        >
+                            <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
+                                {{ currency.label }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.currency" class="text-sm text-destructive">
+                            {{ form.errors.currency }}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>QR Card Design *</CardTitle>
+                    <CardDescription>Pick one of three catchy designs for the printable QR image</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <QrStylePicker
+                        v-model="form.qr_style"
+                        :styles="qrStyles"
+                        :brand-color="form.color"
+                        :has-logo="!!logoPreview || !!form.logo"
+                    />
+                    <p v-if="form.errors.qr_style" class="mt-2 text-sm text-destructive">
+                        {{ form.errors.qr_style }}
+                    </p>
                 </CardContent>
             </Card>
 

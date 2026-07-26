@@ -61,6 +61,20 @@ const props = defineProps<{
         name: string;
         email: string;
     }>;
+    currencies: Array<{
+        code: string;
+        name: string;
+        symbol: string;
+        label: string;
+    }>;
+    qrStyles: Array<{
+        id: string;
+        name: string;
+        tagline: string;
+        subtitle: string;
+        description: string;
+        requires_logo?: boolean;
+    }>;
 }>();
 
 const search = ref(props.filters.search || '');
@@ -376,6 +390,11 @@ const generateMiniChartData = () => {
         />
 
         <!-- Create Business Modal -->
-        <CreateBusinessModal v-model:open="showCreateModal" :business-users="businessUsers" />
+        <CreateBusinessModal
+            v-model:open="showCreateModal"
+            :business-users="businessUsers"
+            :currencies="currencies"
+            :qr-styles="qrStyles"
+        />
     </div>
 </template>

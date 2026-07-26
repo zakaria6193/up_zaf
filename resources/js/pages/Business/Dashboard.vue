@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { QrCode, Link as LinkIcon, Menu, TrendingUp, Eye, Building2, ExternalLink } from 'lucide-vue-next';
+import { index as profile } from '@/actions/App/Http/Controllers/Business/ProfileController';
 
 const props = defineProps<{
     businesses: Array<{
@@ -30,6 +31,9 @@ const props = defineProps<{
 const formatNumber = (num: number) => {
     return new Intl.NumberFormat('fr-FR').format(num);
 };
+
+const manageUrl = (nanoid: string) =>
+    profile.url({ query: { business: nanoid } });
 </script>
 
 <template>
@@ -184,7 +188,7 @@ const formatNumber = (num: number) => {
                                 </a>
                             </Button>
                             <Button size="sm" as-child class="flex-1">
-                                <Link href="/business/profile">
+                                <Link :href="manageUrl(business.nanoid)">
                                     Manage
                                 </Link>
                             </Button>

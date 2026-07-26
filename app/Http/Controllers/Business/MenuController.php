@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
-use App\Models\Business;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
+use App\Support\Currency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +46,9 @@ class MenuController extends Controller
             'business' => [
                 'nanoid' => $business->nanoid,
                 'name' => $business->name,
+                'currency' => $business->currencyCode(),
             ],
+            'currencies' => Currency::forFrontend(),
             'categories' => $parentCategories->map(fn ($category) => [
                 'id' => $category->id,
                 'name' => $category->name,
@@ -81,6 +84,23 @@ class MenuController extends Controller
                 'name' => $b->name,
             ])->values(),
         ]);
+    }
+
+    /**
+     * Update the currency used for menu prices.
+     */
+    public function updateCurrency(Request $request, string $nanoid): RedirectResponse
+    {
+        $user = auth()->user();
+        $business = $user->businesses()->where('nanoid', $nanoid)->firstOrFail();
+
+        $validated = $request->validate([
+            'currency' => ['required', 'string', 'size:3', Rule::in(Currency::codes())],
+        ]);
+
+        $business->update($validated);
+
+        return back()->with('success', 'Currency updated successfully!');
     }
 
     /**

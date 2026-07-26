@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\BusinessUser;
+use App\Support\Currency;
+use App\Support\QrStyle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -34,6 +37,7 @@ class BusinessController extends Controller
                 'name' => $business->name,
                 'address' => $business->address,
                 'color' => $business->color,
+                'currency' => $business->currencyCode(),
                 'logo' => $business->logoUrl(),
                 'public_url' => $business->publicUrl(),
                 'qr_code' => $business->qrCodeUrl(),
@@ -48,6 +52,8 @@ class BusinessController extends Controller
             'businesses' => $businesses,
             'filters' => $request->only(['search']),
             'businessUsers' => BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
+            'currencies' => Currency::forFrontend(),
+            'qrStyles' => QrStyle::forFrontend(),
         ]);
     }
 
@@ -58,6 +64,8 @@ class BusinessController extends Controller
     {
         return Inertia::render('Admin/Businesses/Create', [
             'businessUsers' => BusinessUser::orderBy('name')->get(['id', 'name', 'email']),
+            'currencies' => Currency::forFrontend(),
+            'qrStyles' => QrStyle::forFrontend(),
         ]);
     }
 
@@ -66,6 +74,8 @@ class BusinessController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $hasLogo = $request->hasFile('logo');
+
         $validated = $request->validate([
             'business_user_id' => ['nullable', 'exists:business_users,id'],
             'name' => ['required', 'string', 'max:255'],
@@ -74,6 +84,8 @@ class BusinessController extends Controller
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'currency' => ['required', 'string', 'size:3', Rule::in(Currency::codes())],
+            'qr_style' => ['required', 'string', Rule::in(QrStyle::codes($hasLogo))],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string', 'max:255'],
@@ -104,9 +116,11 @@ class BusinessController extends Controller
                 'lat' => $business->lat,
                 'lng' => $business->lng,
                 'color' => $business->color,
+                'currency' => $business->currencyCode(),
                 'logo' => $business->logoUrl(),
                 'public_url' => $business->publicUrl(),
                 'qr_code' => $business->qrCodeUrl(),
+                'qr_style' => $business->qrStyleCode(),
                 'is_active' => $business->is_active,
                 'seo_title' => $business->seo_title,
                 'seo_description' => $business->seo_description,
@@ -133,11 +147,15 @@ class BusinessController extends Controller
                 'lat' => $business->lat,
                 'lng' => $business->lng,
                 'color' => $business->color,
+                'currency' => $business->currencyCode(),
                 'logo' => $business->logoUrl(),
                 'seo_title' => $business->seo_title,
                 'seo_description' => $business->seo_description,
                 'seo_keywords' => $business->seo_keywords,
+                'qr_style' => $business->qrStyleCode(),
             ],
+            'currencies' => Currency::forFrontend(),
+            'qrStyles' => QrStyle::forFrontend(),
             'categories' => $business->menuCategories->map(fn ($category) => [
                 'id' => $category->id,
                 'name' => $category->name,
@@ -160,6 +178,8 @@ class BusinessController extends Controller
      */
     public function update(Request $request, Business $business): RedirectResponse
     {
+        $hasLogo = $request->hasFile('logo') || filled($business->logo);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
@@ -167,6 +187,8 @@ class BusinessController extends Controller
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'currency' => ['required', 'string', 'size:3', Rule::in(Currency::codes())],
+            'qr_style' => ['required', 'string', Rule::in(QrStyle::codes($hasLogo))],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string', 'max:255'],
@@ -180,7 +202,16 @@ class BusinessController extends Controller
             $validated['logo'] = $this->processLogo($request->file('logo'));
         }
 
+        $shouldRegenerateQr = ($validated['name'] ?? null) !== $business->name
+            || ($validated['color'] ?? null) !== $business->color
+            || ($validated['qr_style'] ?? null) !== $business->qr_style
+            || $request->hasFile('logo');
+
         $business->update($validated);
+
+        if ($shouldRegenerateQr) {
+            $business->generateQrCode();
+        }
 
         return redirect()->route('admin.businesses.show', $business)
             ->with('success', 'Business updated successfully!');

@@ -14,9 +14,12 @@ import { Label } from '@/components/ui/label';
 import { store } from '@/actions/App/Http/Controllers/Admin/BusinessController';
 import { ChevronLeft, ChevronRight, Search, Upload, X } from 'lucide-vue-next';
 import LocationPicker from '@/components/LocationPicker.vue';
+import QrStylePicker from '@/components/QrStylePicker.vue';
 
 const props = defineProps<{
     businessUsers: Array<{ id: number; name: string; email: string }>;
+    currencies: Array<{ code: string; name: string; symbol: string; label: string }>;
+    qrStyles?: Array<{ id: string; name: string; tagline: string; subtitle: string; description: string }>;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
@@ -33,8 +36,40 @@ const form = ref({
     lng: null as number | null,
     logo: null as File | null,
     color: '#4d54d9',
+    currency: 'MAD',
+    qr_style: 'pulse',
     seo_title: '',
 });
+
+const defaultQrStyles = [
+    {
+        id: 'pulse',
+        name: 'Pulse',
+        tagline: 'Discover the menu',
+        subtitle: '',
+        description: 'Soft light card',
+        requires_logo: false,
+    },
+    {
+        id: 'noir',
+        name: 'Noir',
+        tagline: "See what's cooking",
+        subtitle: '',
+        description: 'Bold dark card',
+        requires_logo: false,
+    },
+    {
+        id: 'emblem',
+        name: 'Emblem',
+        tagline: 'Explore the menu',
+        subtitle: '',
+        description: 'Logo woven in',
+        requires_logo: true,
+    },
+];
+
+const qrStyleOptions = computed(() => props.qrStyles?.length ? props.qrStyles : defaultQrStyles);
+const hasLogoSelected = computed(() => !!form.value.logo || !!logoPreview.value);
 
 const logoPreview = ref<string | null>(null);
 const processing = ref(false);
@@ -133,6 +168,8 @@ const submit = async () => {
         formData.append('logo', form.value.logo);
     }
     formData.append('color', form.value.color);
+    formData.append('currency', form.value.currency);
+    formData.append('qr_style', form.value.qr_style);
     formData.append('seo_title', form.value.seo_title || form.value.name);
 
     // Submit form
@@ -157,6 +194,8 @@ const resetForm = () => {
         lng: null,
         logo: null,
         color: '#4d54d9',
+        currency: 'MAD',
+        qr_style: 'pulse',
         seo_title: '',
     };
     userSearch.value = '';
@@ -337,6 +376,29 @@ const resetForm = () => {
                         </div>
                     </div>
 
+                    <div class="space-y-2">
+                        <Label for="currency">Devise</Label>
+                        <select
+                            id="currency"
+                            v-model="form.currency"
+                            class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        >
+                            <option v-for="currency in currencies" :key="currency.code" :value="currency.code">
+                                {{ currency.label }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label>Design du QR *</Label>
+                        <QrStylePicker
+                            v-model="form.qr_style"
+                            :styles="qrStyleOptions"
+                            :brand-color="form.color"
+                            :has-logo="hasLogoSelected"
+                        />
+                    </div>
+
                     <!-- Summary -->
                     <div class="rounded-lg border bg-muted/30 p-4 space-y-3">
                         <h3 class="font-semibold">Récapitulatif</h3>
@@ -360,6 +422,11 @@ const resetForm = () => {
                             <div>
                                 <span class="text-muted-foreground">Couleur:</span>
                                 <span class="ml-2 inline-block h-4 w-8 rounded border" :style="{ backgroundColor: form.color }"></span>
+                            </div>
+
+                            <div>
+                                <span class="text-muted-foreground">QR:</span>
+                                <span class="ml-2 font-medium">{{ qrStyleOptions.find(s => s.id === form.qr_style)?.name }}</span>
                             </div>
                         </div>
                     </div>
