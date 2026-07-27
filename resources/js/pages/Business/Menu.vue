@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ref, computed, watch } from 'vue';
 import { Plus, Edit, Trash2, Save, X, FolderPlus } from 'lucide-vue-next';
+import BusinessManageNav from '@/components/BusinessManageNav.vue';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import MenuCurrencySelect from '@/components/MenuCurrencySelect.vue';
 import MenuItemForm from '@/components/MenuItemForm.vue';
@@ -294,6 +295,8 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
                 />
             </div>
         </div>
+
+        <BusinessManageNav :business-nanoid="business.nanoid" active="menu" />
 
         <!-- Quick Add Category Form -->
         <Card v-if="showAddCategoryForm" class="bg-blue-50 border-blue-200">

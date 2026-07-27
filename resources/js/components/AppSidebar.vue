@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { Building2, QrCode, Link as LinkIcon, Menu, Settings, LayoutGrid, Users, BarChart3 } from 'lucide-vue-next';
+import { LayoutGrid, Users, BarChart3, Building2, Settings } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -20,25 +20,6 @@ import { computed } from 'vue';
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value?.is_admin);
-
-const selectedBusinessNanoid = computed(() => {
-    const query = page.url.includes('?') ? page.url.split('?')[1] : '';
-    return new URLSearchParams(query).get('business');
-});
-
-const withSelectedBusiness = (href: string): string => {
-    if (!selectedBusinessNanoid.value) {
-        return href;
-    }
-
-    // Dashboard and settings are account-level, not per-business.
-    if (href === '/business/dashboard' || href === '/business/settings') {
-        return href;
-    }
-
-    const separator = href.includes('?') ? '&' : '?';
-    return `${href}${separator}business=${encodeURIComponent(selectedBusinessNanoid.value)}`;
-};
 
 const adminNavItems: NavItem[] = [
     {
@@ -68,41 +49,22 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
-const businessNavItems = computed<NavItem[]>(() => [
+/** Business tools (menu, QR, links, profile) live under Manage for a chosen enterprise. */
+const businessNavItems: NavItem[] = [
     {
         title: 'Tableau de bord',
         href: '/business/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Mon Entreprise',
-        href: withSelectedBusiness('/business/profile'),
-        icon: Building2,
-    },
-    {
-        title: 'Code QR',
-        href: withSelectedBusiness('/business/qr-code'),
-        icon: QrCode,
-    },
-    {
-        title: 'Liens',
-        href: withSelectedBusiness('/business/links'),
-        icon: LinkIcon,
-    },
-    {
-        title: 'Menu',
-        href: withSelectedBusiness('/business/menu'),
-        icon: Menu,
-    },
-    {
         title: 'Paramètres',
         href: '/business/settings',
         icon: Settings,
     },
-]);
+];
 
-const mainNavItems = computed(() => isAdmin.value ? adminNavItems : businessNavItems.value);
-const dashboardHref = computed(() => isAdmin.value ? '/adminos/dashboard' : '/business/dashboard');
+const mainNavItems = computed(() => (isAdmin.value ? adminNavItems : businessNavItems));
+const dashboardHref = computed(() => (isAdmin.value ? '/adminos/dashboard' : '/business/dashboard'));
 </script>
 
 <template>

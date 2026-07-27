@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download, ExternalLink, Copy, Check } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import BusinessManageNav from '@/components/BusinessManageNav.vue';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import QrStylePicker from '@/components/QrStylePicker.vue';
 import { updateStyle, updateText } from '@/actions/App/Http/Controllers/Business/QRCodeController';
@@ -194,6 +195,8 @@ const printQR = () => {
                 label="Managing:"
             />
         </div>
+
+        <BusinessManageNav :business-nanoid="business.nanoid" active="qr" />
 
         <div class="grid gap-6 lg:grid-cols-2">
             <Card>

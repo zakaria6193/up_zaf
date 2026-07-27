@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, X, Save, Trash2 } from 'lucide-vue-next';
+import BusinessManageNav from '@/components/BusinessManageNav.vue';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import LocationPicker from '@/components/LocationPicker.vue';
 import QrStylePicker from '@/components/QrStylePicker.vue';
@@ -156,6 +157,8 @@ const handleTabChange = (value: string | number) => {
                 label="Editing:"
             />
         </div>
+
+        <BusinessManageNav :business-nanoid="business.nanoid" active="profile" />
 
         <!-- Tabs -->
         <Tabs v-model="activeTab" @update:model-value="handleTabChange">

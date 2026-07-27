@@ -4,7 +4,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { QrCode, Link as LinkIcon, Menu, TrendingUp, Eye, Building2, ExternalLink, Plus } from 'lucide-vue-next';
+import { Link as LinkIcon, Menu, TrendingUp, Eye, Building2, ExternalLink, Plus } from 'lucide-vue-next';
 import { index as profile } from '@/actions/App/Http/Controllers/Business/ProfileController';
 import { create as createBusiness } from '@/actions/App/Http/Controllers/Business/BusinessController';
 
@@ -157,18 +157,14 @@ const manageUrl = (nanoid: string) => profile.url({ query: { business: nanoid } 
 
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium">Quick Actions</CardTitle>
-                    <QrCode class="text-muted-foreground h-4 w-4" />
+                    <CardTitle class="text-sm font-medium">Tip</CardTitle>
+                    <Building2 class="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                    <div class="flex flex-col gap-2">
-                        <Button size="sm" variant="outline" as-child class="w-full">
-                            <Link href="/business/qr-code">
-                                <QrCode class="mr-2 h-3 w-3" />
-                                QR Codes
-                            </Link>
-                        </Button>
-                    </div>
+                    <p class="text-muted-foreground text-xs leading-relaxed">
+                        Open <span class="text-foreground font-medium">Manage</span> on a business to edit
+                        profile, menu, QR code, and links.
+                    </p>
                 </CardContent>
             </Card>
         </div>

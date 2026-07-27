@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import BusinessManageNav from '@/components/BusinessManageNav.vue';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import {
     store as storeLink,
@@ -163,6 +164,8 @@ const moveDown = (link: typeof props.links[0]) => {
                 label="Managing:"
             />
         </div>
+
+        <BusinessManageNav :business-nanoid="business.nanoid" active="links" />
 
         <!-- Add Link Form -->
         <Card v-if="showAddForm">
