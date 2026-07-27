@@ -27,13 +27,13 @@ const submit = () => {
 <template>
     <Head title="Connexion Administrateur" />
 
-    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4">
-        <Card class="w-full max-w-md">
+    <div class="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card class="w-full max-w-md border-border shadow-none">
             <CardHeader class="space-y-1 text-center">
                 <div class="mb-4 flex justify-center">
                     <AppLogo class="h-12 w-auto" />
                 </div>
-                <CardTitle class="text-2xl font-bold">Connexion Administrateur</CardTitle>
+                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Connexion Administrateur</CardTitle>
                 <CardDescription>
                     Entrez vos identifiants pour accéder au panneau d'administration
                 </CardDescription>

@@ -48,13 +48,7 @@ const steps = [
 </script>
 
 <template>
-    <Head title="UP1 — Menus digitaux pour restaurants">
-        <link rel="preconnect" href="https://fonts.bunny.net" />
-        <link
-            href="https://fonts.bunny.net/css?family=newsreader:400,500,600,700|ibm-plex-sans:400,500,600,700"
-            rel="stylesheet"
-        />
-    </Head>
+    <Head title="UP1 — Menus digitaux pour restaurants" />
 
     <div class="page">
         <header class="topbar" :class="{ scrolled }">

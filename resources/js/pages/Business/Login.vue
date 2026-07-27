@@ -34,13 +34,13 @@ const submit = () => {
 <template>
     <Head title="Connexion Entreprise" />
 
-    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-stone-50 to-amber-50 p-4">
-        <Card class="w-full max-w-md">
+    <div class="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card class="w-full max-w-md border-border shadow-none">
             <CardHeader class="space-y-1 text-center">
                 <div class="mb-4 flex justify-center">
                     <AppLogo class="h-12 w-auto" />
                 </div>
-                <CardTitle class="text-2xl font-bold">Connexion Entreprise</CardTitle>
+                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Connexion Entreprise</CardTitle>
                 <CardDescription>
                     Entrez votre e-mail ou numéro de téléphone et votre mot de passe
                 </CardDescription>
@@ -56,7 +56,7 @@ const submit = () => {
                 <a
                     v-if="googleEnabled"
                     href="/auth/google"
-                    class="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+                    class="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-medium hover:bg-muted"
                 >
                     <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="#EA4335" d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.2-1.9 2.9l3.1 2.4c1.8-1.7 2.8-4.1 2.8-7 0-.7-.1-1.4-.2-2H12z" />
