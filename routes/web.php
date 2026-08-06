@@ -53,6 +53,9 @@ Route::middleware(['auth', 'business'])->prefix('business')->name('business.')->
     Route::post('links/{nanoid}/reorder', [LinkController::class, 'reorder'])->name('links.reorder');
     Route::get('menu', [App\Http\Controllers\Business\MenuController::class, 'index'])->name('menu');
     Route::patch('menu/{nanoid}/currency', [App\Http\Controllers\Business\MenuController::class, 'updateCurrency'])->name('menu.currency.update');
+    Route::post('menu/{nanoid}/import/parse', [App\Http\Controllers\Business\MenuController::class, 'parseFromImage'])->name('menu.import.parse');
+    Route::post('menu/{nanoid}/import/confirm', [App\Http\Controllers\Business\MenuController::class, 'confirmImport'])->name('menu.import.confirm');
+    Route::delete('menu/{nanoid}/import/draft', [App\Http\Controllers\Business\MenuController::class, 'dismissImport'])->name('menu.import.dismiss');
     Route::post('menu/{nanoid}/categories', [App\Http\Controllers\Business\MenuController::class, 'storeCategory'])->name('menu.categories.store');
     Route::put('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'updateCategory'])->name('menu.categories.update');
     Route::delete('menu/{nanoid}/categories/{category}', [App\Http\Controllers\Business\MenuController::class, 'destroyCategory'])->name('menu.categories.destroy');

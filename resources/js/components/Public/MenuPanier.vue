@@ -40,10 +40,10 @@ const copyList = async () => {
         (item) => `${item.quantity}x ${item.name} — ${formatPrice(item.price * item.quantity)}`,
     );
     const text = [
-        'Ma sélection',
+        'My selection',
         ...lines,
         '',
-        `Total estimé: ${formatPrice(props.totalPrice)}`,
+        `Estimated total: ${formatPrice(props.totalPrice)}`,
     ].join('\n');
 
     try {
@@ -53,7 +53,7 @@ const copyList = async () => {
             copied.value = false;
         }, 2000);
     } catch {
-        window.prompt('Copiez cette liste:', text);
+        window.prompt('Copy this list:', text);
     }
 };
 </script>
@@ -78,8 +78,8 @@ const copyList = async () => {
                 </span>
             </span>
             <span class="text-left">
-                <span class="block text-sm font-semibold">Voir le panier</span>
-                <span class="block text-xs text-white/80">{{ totalQuantity }} article{{ totalQuantity > 1 ? 's' : '' }}</span>
+                <span class="block text-sm font-semibold">View cart</span>
+                <span class="block text-xs text-white/80">{{ totalQuantity }} item{{ totalQuantity > 1 ? 's' : '' }}</span>
             </span>
         </span>
         <span class="text-sm font-semibold tabular-nums">
@@ -95,10 +95,10 @@ const copyList = async () => {
             <div class="flex max-h-[85vh] flex-col">
                 <SheetHeader class="border-b border-gray-100 px-6 pb-4 pt-6 text-left">
                     <SheetTitle class="text-xl font-bold text-gray-900">
-                        Votre panier
+                        Your cart
                     </SheetTitle>
                     <SheetDescription class="text-sm text-gray-500">
-                        Notez ce que vous voulez, puis montrez la liste au serveur.
+                        Note what you want, then show the list to your server.
                     </SheetDescription>
                 </SheetHeader>
 
@@ -109,9 +109,9 @@ const copyList = async () => {
                     >
                         <ShoppingBag class="h-6 w-6" :style="{ color: brandColor }" />
                     </div>
-                    <p class="font-medium text-gray-900">Panier vide</p>
+                    <p class="font-medium text-gray-900">Cart empty</p>
                     <p class="mt-1 text-sm text-gray-500">
-                        Appuyez sur + à côté d’un plat pour l’ajouter.
+                        Tap + next to a dish to add it.
                     </p>
                 </div>
 
@@ -166,7 +166,7 @@ const copyList = async () => {
                     class="space-y-3 border-t border-gray-100 bg-white px-6 py-5"
                 >
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-500">Total estimé</span>
+                        <span class="text-sm text-gray-500">Estimated total</span>
                         <span class="text-lg font-bold" :style="{ color: brandColor }">
                             {{ formatPrice(totalPrice) }}
                         </span>
@@ -180,14 +180,14 @@ const copyList = async () => {
                         >
                             <Check v-if="copied" class="h-4 w-4 text-green-600" />
                             <Copy v-else class="h-4 w-4" />
-                            {{ copied ? 'Copié' : 'Copier la liste' }}
+                            {{ copied ? 'Copied' : 'Copy list' }}
                         </button>
                         <button
                             type="button"
                             class="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 hover:text-red-600"
                             @click="emit('clear')"
                         >
-                            Vider
+                            Clear
                         </button>
                     </div>
                 </div>

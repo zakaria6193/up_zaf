@@ -11,8 +11,8 @@ import { ref } from 'vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Paramètres' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Settings' },
         ],
     },
 });
@@ -60,14 +60,14 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <Head title="Paramètres" />
+    <Head title="Settings" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div>
-            <h1 class="text-2xl font-semibold">Paramètres</h1>
+            <h1 class="text-2xl font-semibold">Settings</h1>
             <p class="text-sm text-muted-foreground">
-                Gérer votre compte et préférences
+                Manage your account and preferences
             </p>
         </div>
 
@@ -76,11 +76,11 @@ const updatePassword = () => {
             <TabsList class="grid w-full grid-cols-2 max-w-md">
                 <TabsTrigger value="profile">
                     <User class="mr-2 h-4 w-4" />
-                    Profil
+                    Profile
                 </TabsTrigger>
                 <TabsTrigger value="password">
                     <Lock class="mr-2 h-4 w-4" />
-                    Mot de passe
+                    Password
                 </TabsTrigger>
             </TabsList>
 
@@ -89,9 +89,9 @@ const updatePassword = () => {
                 <form @submit.prevent="updateProfile" class="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Informations du Profil</CardTitle>
+                            <CardTitle>Profile Information</CardTitle>
                             <CardDescription>
-                                Mettez à jour vos informations personnelles
+                                Update your personal details
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
@@ -101,16 +101,16 @@ const updatePassword = () => {
                                     {{ user.name.charAt(0).toUpperCase() }}
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium">Photo de profil</p>
+                                    <p class="text-sm font-medium">Profile photo</p>
                                     <p class="text-xs text-muted-foreground">
-                                        Initiale de votre nom
+                                        Initial of your name
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Name -->
                             <div class="space-y-2">
-                                <Label for="profile-name">Nom complet *</Label>
+                                <Label for="profile-name">Full name *</Label>
                                 <Input
                                     id="profile-name"
                                     v-model="profileForm.name"
@@ -143,7 +143,7 @@ const updatePassword = () => {
                     <!-- Actions -->
                     <div class="flex gap-3">
                         <Button type="submit" :disabled="profileForm.processing">
-                            {{ profileForm.processing ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+                            {{ profileForm.processing ? 'Saving...' : 'Save changes' }}
                         </Button>
                     </div>
                 </form>
@@ -154,15 +154,15 @@ const updatePassword = () => {
                 <form @submit.prevent="updatePassword" class="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Changer le Mot de Passe</CardTitle>
+                            <CardTitle>Change Password</CardTitle>
                             <CardDescription>
-                                Assurez-vous d'utiliser un mot de passe fort et sécurisé
+                                Make sure to use a strong, secure password
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <!-- Current Password -->
                             <div class="space-y-2">
-                                <Label for="current_password">Mot de passe actuel *</Label>
+                                <Label for="current_password">Current password *</Label>
                                 <Input
                                     id="current_password"
                                     v-model="passwordForm.current_password"
@@ -177,7 +177,7 @@ const updatePassword = () => {
 
                             <!-- New Password -->
                             <div class="space-y-2">
-                                <Label for="password">Nouveau mot de passe *</Label>
+                                <Label for="password">New password *</Label>
                                 <Input
                                     id="password"
                                     v-model="passwordForm.password"
@@ -189,13 +189,13 @@ const updatePassword = () => {
                                     {{ passwordForm.errors.password }}
                                 </p>
                                 <p class="text-xs text-muted-foreground">
-                                    Minimum 8 caractères
+                                    Minimum 8 characters
                                 </p>
                             </div>
 
                             <!-- Confirm Password -->
                             <div class="space-y-2">
-                                <Label for="password_confirmation">Confirmer le nouveau mot de passe *</Label>
+                                <Label for="password_confirmation">Confirm new password *</Label>
                                 <Input
                                     id="password_confirmation"
                                     v-model="passwordForm.password_confirmation"
@@ -209,7 +209,7 @@ const updatePassword = () => {
                     <!-- Actions -->
                     <div class="flex gap-3">
                         <Button type="submit" :disabled="passwordForm.processing">
-                            {{ passwordForm.processing ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+                            {{ passwordForm.processing ? 'Updating...' : 'Update password' }}
                         </Button>
                         <Button
                             type="button"
@@ -217,7 +217,7 @@ const updatePassword = () => {
                             @click="passwordForm.reset()"
                             :disabled="passwordForm.processing"
                         >
-                            Réinitialiser
+                            Reset
                         </Button>
                     </div>
                 </form>
@@ -227,41 +227,41 @@ const updatePassword = () => {
         <!-- Additional Settings Sections (Future) -->
         <Card class="mt-6">
             <CardHeader>
-                <CardTitle>Autres Paramètres</CardTitle>
+                <CardTitle>Other Settings</CardTitle>
                 <CardDescription>
-                    Configuration supplémentaire du système
+                    Additional system configuration
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div class="space-y-4">
                     <div class="flex items-center justify-between py-3 border-b">
                         <div>
-                            <p class="text-sm font-medium">Notifications Email</p>
+                            <p class="text-sm font-medium">Email Notifications</p>
                             <p class="text-xs text-muted-foreground">
-                                Recevoir des notifications par email
+                                Receive notifications by email
                             </p>
                         </div>
-                        <p class="text-xs text-muted-foreground">Bientôt disponible</p>
+                        <p class="text-xs text-muted-foreground">Coming soon</p>
                     </div>
 
                     <div class="flex items-center justify-between py-3 border-b">
                         <div>
-                            <p class="text-sm font-medium">Sessions Actives</p>
+                            <p class="text-sm font-medium">Active Sessions</p>
                             <p class="text-xs text-muted-foreground">
-                                Gérer les sessions connectées
+                                Manage signed-in sessions
                             </p>
                         </div>
-                        <p class="text-xs text-muted-foreground">Bientôt disponible</p>
+                        <p class="text-xs text-muted-foreground">Coming soon</p>
                     </div>
 
                     <div class="flex items-center justify-between py-3">
                         <div>
-                            <p class="text-sm font-medium">Authentification à Deux Facteurs</p>
+                            <p class="text-sm font-medium">Two-Factor Authentication</p>
                             <p class="text-xs text-muted-foreground">
-                                Sécuriser votre compte avec 2FA
+                                Secure your account with 2FA
                             </p>
                         </div>
-                        <p class="text-xs text-muted-foreground">Bientôt disponible</p>
+                        <p class="text-xs text-muted-foreground">Coming soon</p>
                     </div>
                 </div>
             </CardContent>

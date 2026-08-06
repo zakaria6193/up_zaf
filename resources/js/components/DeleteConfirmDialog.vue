@@ -52,7 +52,7 @@ const handleConfirm = async () => {
 
             <div class="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
                 <p class="text-sm text-muted-foreground">
-                    Cette action est irréversible. Toutes les données associées (liens, menu, etc.) seront également supprimées.
+                    This action cannot be undone. All associated data (links, menu, etc.) will also be deleted.
                 </p>
             </div>
 
@@ -62,14 +62,14 @@ const handleConfirm = async () => {
                     @click="open = false"
                     :disabled="processing || loading"
                 >
-                    Annuler
+                    Cancel
                 </Button>
                 <Button
                     variant="destructive"
                     @click="handleConfirm"
                     :disabled="processing || loading"
                 >
-                    {{ processing || loading ? 'Suppression...' : 'Supprimer' }}
+                    {{ processing || loading ? 'Deleting...' : 'Delete' }}
                 </Button>
             </DialogFooter>
         </DialogContent>

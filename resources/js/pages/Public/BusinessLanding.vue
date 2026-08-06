@@ -218,7 +218,7 @@ const shareMenu = async () => {
         try {
             await navigator.share({
                 title: `${props.business.name} - Menu`,
-                text: `Découvrez le menu de ${props.business.name}`,
+                text: `Discover the menu at ${props.business.name}`,
                 url,
             });
         } catch {
@@ -227,12 +227,12 @@ const shareMenu = async () => {
     } else if (navigator.clipboard?.writeText) {
         try {
             await navigator.clipboard.writeText(url);
-            alert('Lien copié dans le presse-papiers!');
+            alert('Link copied to clipboard!');
         } catch {
-            alert('Impossible de copier le lien. Veuillez le copier manuellement: ' + url);
+            alert('Unable to copy the link. Please copy it manually: ' + url);
         }
     } else {
-        alert('Copiez ce lien: ' + url);
+        alert('Copy this link: ' + url);
     }
 };
 </script>
@@ -316,8 +316,8 @@ const shareMenu = async () => {
                             <Menu class="h-5 w-5" />
                         </span>
                         <span>
-                            <span class="block text-base font-semibold">Voir le menu</span>
-                            <span class="block text-xs font-medium text-white/80">Parcourir les plats</span>
+                            <span class="block text-base font-semibold">View menu</span>
+                            <span class="block text-xs font-medium text-white/80">Browse dishes</span>
                         </span>
                     </span>
                     <ChevronRight class="h-5 w-5 opacity-80 transition group-hover:translate-x-0.5" />
@@ -366,7 +366,7 @@ const shareMenu = async () => {
                     @click="closeMenu"
                 >
                     <ArrowLeft class="h-5 w-5" />
-                    <span class="sr-only sm:not-sr-only sm:pr-2 sm:text-sm sm:font-medium">Retour</span>
+                    <span class="sr-only sm:not-sr-only sm:pr-2 sm:text-sm sm:font-medium">Back</span>
                 </button>
 
                 <div class="flex min-w-0 items-center gap-2">
@@ -385,7 +385,7 @@ const shareMenu = async () => {
                     @click="shareMenu"
                 >
                     <Share2 class="h-5 w-5" />
-                    <span class="sr-only">Partager</span>
+                    <span class="sr-only">Share</span>
                 </button>
             </div>
 
@@ -414,8 +414,8 @@ const shareMenu = async () => {
 
         <div class="mx-auto max-w-2xl px-4 pb-32 pt-5">
             <div v-if="sortedCategories.length === 0" class="rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-stone-200/70">
-                <p class="text-lg font-semibold text-stone-900">Aucun menu disponible</p>
-                <p class="mt-2 text-sm text-stone-500">Le menu est en cours de mise à jour.</p>
+                <p class="text-lg font-semibold text-stone-900">No menu available</p>
+                <p class="mt-2 text-sm text-stone-500">The menu is being updated.</p>
             </div>
 
             <section
@@ -519,7 +519,7 @@ const shareMenu = async () => {
                                 v-if="subcategory.items.length === 0"
                                 class="p-4 text-center text-sm text-stone-400"
                             >
-                                Aucun article
+                                No items
                             </div>
                         </div>
                     </div>
@@ -528,7 +528,7 @@ const shareMenu = async () => {
                         v-if="category.items.length === 0 && category.subcategories.length === 0"
                         class="p-8 text-center text-sm text-stone-400"
                     >
-                        Aucun article dans cette catégorie
+                        No items in this category
                     </div>
                 </div>
             </section>

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ref, computed, watch } from 'vue';
-import { Plus, Edit, Trash2, Save, X, FolderPlus } from 'lucide-vue-next';
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Camera, Loader2 } from 'lucide-vue-next';
 import BusinessManageNav from '@/components/BusinessManageNav.vue';
 import BusinessSwitcher from '@/components/BusinessSwitcher.vue';
 import MenuCurrencySelect from '@/components/MenuCurrencySelect.vue';
@@ -22,6 +22,9 @@ import {
     destroyItem,
     toggleItemActive,
     updateCurrency,
+    parseFromImage,
+    confirmImport,
+    dismissImport,
 } from '@/actions/App/Http/Controllers/Business/MenuController';
 
 interface MenuItem {
@@ -68,6 +71,21 @@ const props = defineProps<{
         nanoid: string;
         name: string;
     }>;
+    subscription?: {
+        is_premium: boolean;
+    } | null;
+    geminiEnabled?: boolean;
+    menuImportDraft?: {
+        business_nanoid: string;
+        categories: Array<{
+            name: string;
+            items: Array<{
+                name: string;
+                description: string | null;
+                price: number | null;
+            }>;
+        }>;
+    } | null;
 }>();
 
 const showAddCategoryForm = ref(false);
@@ -77,6 +95,43 @@ const editingCategoryId = ref<number | null>(null);
 const editingItemId = ref<number | null>(null);
 const selectedCurrency = ref(props.business.currency || 'MAD');
 const itemImagePreview = ref<string | null>(null);
+const importFileInput = ref<HTMLInputElement | null>(null);
+
+type ImportDraftItem = {
+    name: string;
+    description: string;
+    price: string;
+};
+
+type ImportDraftCategory = {
+    name: string;
+    items: ImportDraftItem[];
+};
+
+const importDraft = ref<ImportDraftCategory[] | null>(
+    props.menuImportDraft?.business_nanoid === props.business.nanoid
+        ? props.menuImportDraft.categories.map((category) => ({
+              name: category.name,
+              items: category.items.map((item) => ({
+                  name: item.name,
+                  description: item.description ?? '',
+                  price: item.price === null || item.price === undefined ? '' : String(item.price),
+              })),
+          }))
+        : null,
+);
+
+const canImportFromPhoto = computed(
+    () => Boolean(props.subscription?.is_premium) && Boolean(props.geminiEnabled),
+);
+
+const parseImportForm = useForm({
+    image: null as File | null,
+});
+
+const confirmImportForm = useForm({
+    categories: [] as ImportDraftCategory[],
+});
 
 const addCategoryForm = useForm({
     name: '',
@@ -262,6 +317,107 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
         preserveScroll: true,
     });
 };
+
+const triggerImportPicker = () => {
+    if (! props.subscription?.is_premium) {
+        return;
+    }
+    importFileInput.value?.click();
+};
+
+const handleImportFileChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (! file) {
+        return;
+    }
+
+    parseImportForm.image = file;
+    parseImportForm.post(parseFromImage.url(props.business.nanoid), {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => {
+            parseImportForm.reset('image');
+            if (importFileInput.value) {
+                importFileInput.value.value = '';
+            }
+        },
+    });
+};
+
+const removeImportCategory = (index: number) => {
+    if (! importDraft.value) {
+        return;
+    }
+    importDraft.value.splice(index, 1);
+};
+
+const removeImportItem = (categoryIndex: number, itemIndex: number) => {
+    if (! importDraft.value) {
+        return;
+    }
+    importDraft.value[categoryIndex].items.splice(itemIndex, 1);
+};
+
+const addImportItem = (categoryIndex: number) => {
+    if (! importDraft.value) {
+        return;
+    }
+    importDraft.value[categoryIndex].items.push({
+        name: '',
+        description: '',
+        price: '',
+    });
+};
+
+const submitImportDraft = () => {
+    if (! importDraft.value || importDraft.value.length === 0) {
+        return;
+    }
+
+    confirmImportForm.categories = importDraft.value.map((category) => ({
+        name: category.name,
+        items: category.items
+            .filter((item) => item.name.trim() !== '')
+            .map((item) => ({
+                name: item.name,
+                description: item.description,
+                price: item.price === '' ? '' : item.price,
+            })),
+    })).filter((category) => category.name.trim() !== '' && category.items.length > 0);
+
+    confirmImportForm.post(confirmImport.url(props.business.nanoid), {
+        preserveScroll: true,
+        onSuccess: () => {
+            importDraft.value = null;
+        },
+    });
+};
+
+const dismissImportDraft = () => {
+    router.delete(dismissImport.url(props.business.nanoid), {
+        preserveScroll: true,
+        onSuccess: () => {
+            importDraft.value = null;
+        },
+    });
+};
+
+watch(
+    () => props.menuImportDraft,
+    (draft) => {
+        if (draft?.business_nanoid === props.business.nanoid) {
+            importDraft.value = draft.categories.map((category) => ({
+                name: category.name,
+                items: category.items.map((item) => ({
+                    name: item.name,
+                    description: item.description ?? '',
+                    price: item.price === null || item.price === undefined ? '' : String(item.price),
+                })),
+            }));
+        }
+    },
+);
 </script>
 
 <template>
@@ -298,6 +454,69 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
 
         <BusinessManageNav :business-nanoid="business.nanoid" active="menu" />
 
+        <input
+            ref="importFileInput"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            class="hidden"
+            @change="handleImportFileChange"
+        />
+
+        <Card v-if="importDraft && importDraft.length > 0" class="border-primary/30">
+            <CardHeader>
+                <CardTitle>Review imported menu</CardTitle>
+                <CardDescription>
+                    Check names and prices, then import. Nothing is saved until you confirm.
+                </CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4">
+                <div
+                    v-for="(category, categoryIndex) in importDraft"
+                    :key="categoryIndex"
+                    class="space-y-3 rounded-lg border border-border p-4"
+                >
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1 space-y-1">
+                            <Label>Category</Label>
+                            <Input v-model="category.name" />
+                        </div>
+                        <Button type="button" variant="outline" size="icon" @click="removeImportCategory(categoryIndex)">
+                            <Trash2 class="h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    <div
+                        v-for="(item, itemIndex) in category.items"
+                        :key="itemIndex"
+                        class="grid gap-2 rounded-md bg-muted/40 p-3 md:grid-cols-[1.2fr_1.4fr_0.6fr_auto]"
+                    >
+                        <Input v-model="item.name" placeholder="Item name" />
+                        <Input v-model="item.description" placeholder="Description (optional)" />
+                        <Input v-model="item.price" type="number" min="0" step="0.01" placeholder="Price" />
+                        <Button type="button" variant="ghost" size="icon" @click="removeImportItem(categoryIndex, itemIndex)">
+                            <X class="h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    <Button type="button" variant="outline" size="sm" @click="addImportItem(categoryIndex)">
+                        <Plus class="mr-1 h-3 w-3" />
+                        Add item
+                    </Button>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <Button type="button" :disabled="confirmImportForm.processing" @click="submitImportDraft">
+                        <Save class="mr-2 h-4 w-4" />
+                        {{ confirmImportForm.processing ? 'Importing...' : 'Confirm import' }}
+                    </Button>
+                    <Button type="button" variant="outline" @click="dismissImportDraft">
+                        Discard
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
         <!-- Quick Add Category Form -->
         <Card v-if="showAddCategoryForm" class="bg-blue-50 border-blue-200">
             <CardContent class="pt-6">
@@ -326,14 +545,30 @@ const handleToggleItemActive = (categoryId: number, itemId: number) => {
         </Card>
 
         <!-- Add Category Button -->
-        <Button
-            v-if="!showAddCategoryForm"
-            @click="showAddCategoryForm = true"
-            class="w-fit"
-        >
-            <Plus class="mr-2 h-4 w-4" />
-            Add Category
-        </Button>
+        <div v-if="!showAddCategoryForm" class="flex flex-wrap gap-2">
+            <Button @click="showAddCategoryForm = true" class="w-fit">
+                <Plus class="mr-2 h-4 w-4" />
+                Add Category
+            </Button>
+            <Button
+                v-if="canImportFromPhoto"
+                type="button"
+                variant="outline"
+                class="w-fit"
+                :disabled="parseImportForm.processing"
+                @click="triggerImportPicker"
+            >
+                <Loader2 v-if="parseImportForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                <Camera v-else class="mr-2 h-4 w-4" />
+                {{ parseImportForm.processing ? 'Reading menu...' : 'Import from photo' }}
+            </Button>
+            <p
+                v-else-if="subscription && !subscription.is_premium"
+                class="self-center text-sm text-muted-foreground"
+            >
+                Import from photo is a Premium feature.
+            </p>
+        </div>
 
         <!-- Categories List -->
         <div v-if="sortedCategories.length > 0" class="space-y-4">

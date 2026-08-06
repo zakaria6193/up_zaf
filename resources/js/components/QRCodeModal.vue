@@ -42,7 +42,7 @@ const downloadQR = () => {
             <DialogHeader>
                 <DialogTitle>QR Code - {{ businessName }}</DialogTitle>
                 <DialogDescription>
-                    Scannez ce code ou copiez le lien pour partager
+                    Scan this code or copy the link to share
                 </DialogDescription>
             </DialogHeader>
 
@@ -51,14 +51,14 @@ const downloadQR = () => {
                 <div class="flex justify-center rounded-lg border bg-muted/30 p-6">
                     <img
                         :src="qrCodeUrl"
-                        :alt="`QR Code pour ${businessName}`"
+                        :alt="`QR Code for ${businessName}`"
                         class="h-64 w-64 rounded-lg"
                     />
                 </div>
 
                 <!-- Public URL -->
                 <div class="space-y-2">
-                    <label class="text-sm font-medium">Lien public</label>
+                    <label class="text-sm font-medium">Public link</label>
                     <div class="flex gap-2">
                         <code class="flex-1 rounded border bg-muted px-3 py-2 text-sm">
                             {{ publicUrl }}
@@ -67,7 +67,7 @@ const downloadQR = () => {
                             size="icon"
                             variant="outline"
                             @click="copyUrl"
-                            :title="copied ? 'Copié!' : 'Copier le lien'"
+                            :title="copied ? 'Copied!' : 'Copy link'"
                         >
                             <Check v-if="copied" class="h-4 w-4 text-green-600" />
                             <Copy v-else class="h-4 w-4" />
@@ -79,11 +79,11 @@ const downloadQR = () => {
                 <div class="flex gap-2">
                     <Button @click="downloadQR" class="flex-1" variant="outline">
                         <Download class="mr-2 h-4 w-4" />
-                        Télécharger QR
+                        Download QR
                     </Button>
                     <Button as="a" :href="publicUrl" target="_blank" class="flex-1" variant="outline">
                         <ExternalLink class="mr-2 h-4 w-4" />
-                        Voir la page
+                        View page
                     </Button>
                 </div>
             </div>

@@ -31,14 +31,14 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <Head title="Paramètres" />
+    <Head title="Account" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div>
-            <h1 class="text-3xl font-bold">Paramètres</h1>
+            <h1 class="text-3xl font-bold">Account</h1>
             <p class="text-sm text-muted-foreground">
-                Gérez votre compte et vos préférences
+                Your login details and password. Menu and QR live under each business on the dashboard.
             </p>
         </div>
 
@@ -46,12 +46,12 @@ const updatePassword = () => {
             <!-- Account Information -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Informations du compte</CardTitle>
-                    <CardDescription>Vos informations personnelles</CardDescription>
+                    <CardTitle>Account information</CardTitle>
+                    <CardDescription>Your personal details</CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
-                        <Label class="text-sm font-medium text-gray-700">Nom</Label>
+                        <Label class="text-sm font-medium text-gray-700">Name</Label>
                         <p class="text-base">{{ user.name }}</p>
                     </div>
                     <div>
@@ -64,13 +64,13 @@ const updatePassword = () => {
             <!-- Password Change -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Changer le mot de passe</CardTitle>
-                    <CardDescription>Mettez à jour votre mot de passe</CardDescription>
+                    <CardTitle>Change password</CardTitle>
+                    <CardDescription>Update your password</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="updatePassword" class="space-y-4">
                         <div>
-                            <Label for="current_password">Mot de passe actuel</Label>
+                            <Label for="current_password">Current password</Label>
                             <Input
                                 id="current_password"
                                 v-model="passwordForm.current_password"
@@ -84,7 +84,7 @@ const updatePassword = () => {
                         </div>
 
                         <div>
-                            <Label for="password">Nouveau mot de passe</Label>
+                            <Label for="password">New password</Label>
                             <Input
                                 id="password"
                                 v-model="passwordForm.password"
@@ -98,7 +98,7 @@ const updatePassword = () => {
                         </div>
 
                         <div>
-                            <Label for="password_confirmation">Confirmer le mot de passe</Label>
+                            <Label for="password_confirmation">Confirm password</Label>
                             <Input
                                 id="password_confirmation"
                                 v-model="passwordForm.password_confirmation"
@@ -113,7 +113,7 @@ const updatePassword = () => {
                             :disabled="passwordForm.processing"
                         >
                             <Lock class="mr-2 h-4 w-4" />
-                            Mettre à jour le mot de passe
+                            Update password
                         </Button>
                     </form>
                 </CardContent>

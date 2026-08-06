@@ -14,9 +14,9 @@ import { ref, onMounted, watch } from 'vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Entreprises', href: index.url() },
-            { title: 'Détails de l\'entreprise' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Businesses', href: index.url() },
+            { title: 'Business details' },
         ],
     },
 });
@@ -134,7 +134,7 @@ watch(activeTab, (newTab) => {
                 <div>
                     <h1 class="text-3xl font-bold">{{ business.name }}</h1>
                     <p class="text-sm text-muted-foreground">
-                        ID: {{ business.nanoid }} • Créé le {{ business.created_at }}
+                        ID: {{ business.nanoid }} • Created {{ business.created_at }}
                     </p>
                 </div>
             </div>
@@ -142,12 +142,12 @@ watch(activeTab, (newTab) => {
                 <Button as-child variant="outline">
                     <Link :href="edit.url(business.nanoid)">
                         <Edit class="mr-2 h-4 w-4" />
-                        Modifier
+                        Edit
                     </Link>
                 </Button>
                 <Button variant="destructive" @click="showDeleteDialog = true">
                     <Trash2 class="mr-2 h-4 w-4" />
-                    Supprimer
+                    Delete
                 </Button>
             </div>
         </div>
@@ -155,9 +155,9 @@ watch(activeTab, (newTab) => {
         <!-- Tabs Navigation -->
         <Tabs v-model="activeTab" class="w-full">
             <TabsList class="grid w-full grid-cols-4">
-                <TabsTrigger value="info">Informations</TabsTrigger>
+                <TabsTrigger value="info">Information</TabsTrigger>
                 <TabsTrigger value="design">Design</TabsTrigger>
-                <TabsTrigger value="links">Liens</TabsTrigger>
+                <TabsTrigger value="links">Links</TabsTrigger>
                 <TabsTrigger value="menu">Menu</TabsTrigger>
             </TabsList>
 
@@ -171,7 +171,7 @@ watch(activeTab, (newTab) => {
                                 <QrCode class="h-5 w-5" />
                                 QR Code
                             </CardTitle>
-                            <CardDescription>Scannez pour visiter la page publique</CardDescription>
+                            <CardDescription>Scan to visit the public page</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div v-if="business.qr_code" class="flex justify-center">
@@ -183,12 +183,12 @@ watch(activeTab, (newTab) => {
                             </div>
                             <div class="space-y-2">
                                 <Button @click="downloadQR" class="w-full" variant="outline">
-                                    Télécharger le QR Code
+                                    Download QR Code
                                 </Button>
                                 <Button as-child class="w-full" variant="outline">
                                     <a :href="business.public_url" target="_blank">
                                         <ExternalLink class="mr-2 h-4 w-4" />
-                                        Voir la page publique
+                                        View public page
                                     </a>
                                 </Button>
                             </div>
@@ -198,11 +198,11 @@ watch(activeTab, (newTab) => {
                     <!-- Business Info Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Informations de l'entreprise</CardTitle>
+                            <CardTitle>Business information</CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div>
-                                <label class="text-sm font-medium">URL Publique</label>
+                                <label class="text-sm font-medium">Public URL</label>
                                 <div class="mt-1 flex gap-2">
                                     <code class="flex-1 rounded bg-muted px-3 py-2 text-sm">
                                         {{ business.public_url }}
@@ -219,14 +219,14 @@ watch(activeTab, (newTab) => {
                             </div>
 
                             <div v-if="business.address">
-                                <label class="text-sm font-medium">Adresse</label>
+                                <label class="text-sm font-medium">Address</label>
                                 <p class="mt-1 text-sm text-muted-foreground">
                                     {{ business.address }}
                                 </p>
                             </div>
 
                             <div v-if="business.lat && business.lng">
-                                <label class="text-sm font-medium">Coordonnées</label>
+                                <label class="text-sm font-medium">Coordinates</label>
                                 <p class="mt-1 text-sm text-muted-foreground">
                                     {{ business.lat }}, {{ business.lng }}
                                 </p>
@@ -242,8 +242,8 @@ watch(activeTab, (newTab) => {
                     <!-- Branding Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Identité visuelle</CardTitle>
-                            <CardDescription>Logo et couleur de marque</CardDescription>
+                            <CardTitle>Brand identity</CardTitle>
+                            <CardDescription>Logo and brand color</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div>
@@ -259,12 +259,12 @@ watch(activeTab, (newTab) => {
                                             class="h-full w-full object-cover"
                                         />
                                     </div>
-                                    <p v-else class="text-sm text-muted-foreground">Aucun logo</p>
+                                    <p v-else class="text-sm text-muted-foreground">No logo</p>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-sm font-medium">Couleur de marque</label>
+                                <label class="text-sm font-medium">Brand color</label>
                                 <div class="mt-2 flex items-center gap-3">
                                     <div
                                         :style="{ backgroundColor: business.color }"
@@ -279,12 +279,12 @@ watch(activeTab, (newTab) => {
                     <!-- SEO Card -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Référencement SEO</CardTitle>
-                            <CardDescription>Métadonnées pour les moteurs de recherche</CardDescription>
+                            <CardTitle>SEO</CardTitle>
+                            <CardDescription>Metadata for search engines</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-3">
                             <div v-if="business.seo_title">
-                                <label class="text-sm font-medium">Titre</label>
+                                <label class="text-sm font-medium">Title</label>
                                 <p class="mt-1 text-sm text-muted-foreground">{{ business.seo_title }}</p>
                             </div>
                             <div v-if="business.seo_description">
@@ -292,11 +292,11 @@ watch(activeTab, (newTab) => {
                                 <p class="mt-1 text-sm text-muted-foreground">{{ business.seo_description }}</p>
                             </div>
                             <div v-if="business.seo_keywords">
-                                <label class="text-sm font-medium">Mots-clés</label>
+                                <label class="text-sm font-medium">Keywords</label>
                                 <p class="mt-1 text-sm text-muted-foreground">{{ business.seo_keywords }}</p>
                             </div>
                             <p v-if="!business.seo_title && !business.seo_description && !business.seo_keywords" class="text-sm text-muted-foreground">
-                                Aucune métadonnée SEO configurée
+                                No SEO metadata configured
                             </p>
                         </CardContent>
                     </Card>
@@ -309,12 +309,12 @@ watch(activeTab, (newTab) => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle>Liens ({{ business.links.length }})</CardTitle>
-                                <CardDescription>Liens publics pour cette entreprise</CardDescription>
+                                <CardTitle>Links ({{ business.links.length }})</CardTitle>
+                                <CardDescription>Public links for this business</CardDescription>
                             </div>
                             <Button as-child size="sm" variant="outline">
                                 <Link :href="linksIndex.url(business.nanoid)">
-                                    Gérer les liens
+                                    Manage links
                                 </Link>
                             </Button>
                         </div>
@@ -335,11 +335,11 @@ watch(activeTab, (newTab) => {
                                         <p class="text-xs text-muted-foreground">{{ link.url }}</p>
                                     </div>
                                 </div>
-                                <Badge v-if="!link.is_active" variant="outline">Inactif</Badge>
+                                <Badge v-if="!link.is_active" variant="outline">Inactive</Badge>
                             </div>
                         </div>
                         <p v-else class="text-center text-sm text-muted-foreground py-8">
-                            Aucun lien ajouté
+                            No links added
                         </p>
                     </CardContent>
                 </Card>
@@ -351,12 +351,12 @@ watch(activeTab, (newTab) => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle>Menu ({{ business.menu_categories.length }} catégories)</CardTitle>
-                                <CardDescription>Catégories et articles du menu</CardDescription>
+                                <CardTitle>Menu ({{ business.menu_categories.length }} categories)</CardTitle>
+                                <CardDescription>Menu categories and items</CardDescription>
                             </div>
                             <Button as-child size="sm" variant="outline">
                                 <Link :href="`/adminos/businesses/${business.nanoid}/menu`">
-                                    Gérer le menu
+                                    Manage menu
                                 </Link>
                             </Button>
                         </div>
@@ -371,7 +371,7 @@ watch(activeTab, (newTab) => {
                                 <h3 class="mb-3 font-semibold">
                                     {{ category.name }}
                                     <span class="ml-2 text-sm font-normal text-muted-foreground">
-                                        ({{ category.items.length }} articles)
+                                        ({{ category.items.length }} items)
                                     </span>
                                 </h3>
                                 <div class="space-y-2">
@@ -392,7 +392,7 @@ watch(activeTab, (newTab) => {
                             </div>
                         </div>
                         <p v-else class="text-center text-sm text-muted-foreground py-8">
-                            Aucun article au menu
+                            No menu items
                         </p>
                     </CardContent>
                 </Card>
@@ -402,8 +402,8 @@ watch(activeTab, (newTab) => {
         <!-- Delete Confirmation Dialog -->
         <DeleteConfirmDialog
             v-model:open="showDeleteDialog"
-            title="Supprimer l'entreprise"
-            description="Êtes-vous sûr de vouloir supprimer"
+            title="Delete business"
+            description="Are you sure you want to delete"
             :item-name="business.name"
             @confirm="handleDelete"
         />

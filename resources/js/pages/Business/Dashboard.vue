@@ -4,8 +4,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Link as LinkIcon, Menu, TrendingUp, Eye, Building2, ExternalLink, Plus } from 'lucide-vue-next';
+import { Link as LinkIcon, Menu, TrendingUp, Eye, Building2, ExternalLink, Plus, QrCode } from 'lucide-vue-next';
 import { index as profile } from '@/actions/App/Http/Controllers/Business/ProfileController';
+import { index as menu } from '@/actions/App/Http/Controllers/Business/MenuController';
+import { index as qrCode } from '@/actions/App/Http/Controllers/Business/QRCodeController';
+import { index as links } from '@/actions/App/Http/Controllers/Business/LinkController';
 import { create as createBusiness } from '@/actions/App/Http/Controllers/Business/BusinessController';
 
 const props = defineProps<{
@@ -64,10 +67,14 @@ const trialClock = computed(() => {
 });
 
 const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('fr-FR').format(num);
+    return new Intl.NumberFormat('en-US').format(num);
 };
 
-const manageUrl = (nanoid: string) => profile.url({ query: { business: nanoid } });
+const businessQuery = (nanoid: string) => ({ business: nanoid });
+const manageUrl = (nanoid: string) => profile.url({ query: businessQuery(nanoid) });
+const menuUrl = (nanoid: string) => menu.url({ query: businessQuery(nanoid) });
+const qrUrl = (nanoid: string) => qrCode.url({ query: businessQuery(nanoid) });
+const linksUrl = (nanoid: string) => links.url({ query: businessQuery(nanoid) });
 </script>
 
 <template>
@@ -157,13 +164,12 @@ const manageUrl = (nanoid: string) => profile.url({ query: { business: nanoid } 
 
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium">Tip</CardTitle>
-                    <Building2 class="text-muted-foreground h-4 w-4" />
+                    <CardTitle class="text-sm font-medium">Setup</CardTitle>
+                    <QrCode class="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                     <p class="text-muted-foreground text-xs leading-relaxed">
-                        Open <span class="text-foreground font-medium">Manage</span> on a business to edit
-                        profile, menu, QR code, and links.
+                        Menu, QR code, and links stay inside each business. Use the shortcuts on a card below.
                     </p>
                 </CardContent>
             </Card>
@@ -236,6 +242,27 @@ const manageUrl = (nanoid: string) => profile.url({ query: { business: nanoid } 
                             </span>
                         </div>
 
+                        <div class="grid grid-cols-3 gap-2">
+                            <Button size="sm" variant="outline" as-child>
+                                <Link :href="menuUrl(business.nanoid)">
+                                    <Menu class="mr-1.5 h-3.5 w-3.5" />
+                                    Menu
+                                </Link>
+                            </Button>
+                            <Button size="sm" variant="outline" as-child>
+                                <Link :href="qrUrl(business.nanoid)">
+                                    <QrCode class="mr-1.5 h-3.5 w-3.5" />
+                                    QR
+                                </Link>
+                            </Button>
+                            <Button size="sm" variant="outline" as-child>
+                                <Link :href="linksUrl(business.nanoid)">
+                                    <LinkIcon class="mr-1.5 h-3.5 w-3.5" />
+                                    Links
+                                </Link>
+                            </Button>
+                        </div>
+
                         <div class="flex gap-2">
                             <Button size="sm" variant="outline" as-child class="flex-1">
                                 <a :href="business.public_url" target="_blank">
@@ -244,7 +271,7 @@ const manageUrl = (nanoid: string) => profile.url({ query: { business: nanoid } 
                                 </a>
                             </Button>
                             <Button size="sm" as-child class="flex-1">
-                                <Link :href="manageUrl(business.nanoid)">Manage</Link>
+                                <Link :href="manageUrl(business.nanoid)">Setup</Link>
                             </Button>
                         </div>
                     </CardContent>

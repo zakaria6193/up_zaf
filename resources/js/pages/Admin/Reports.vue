@@ -9,8 +9,8 @@ import { TrendingUp, TrendingDown, Building2, Users, Eye, BarChart3 } from 'luci
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Rapports' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Reports' },
         ],
     },
 });
@@ -52,25 +52,25 @@ const props = defineProps<{
 }>();
 
 const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('fr-FR').format(num);
+    return new Intl.NumberFormat('en-US').format(num);
 };
 
 const formatMonth = (month: string) => {
     const [year, monthNum] = month.split('-');
     const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-    return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 };
 </script>
 
 <template>
-    <Head title="Rapports & Analytiques" />
+    <Head title="Reports & Analytics" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div>
-            <h1 class="text-2xl font-semibold">Rapports & Analytiques</h1>
+            <h1 class="text-2xl font-semibold">Reports & Analytics</h1>
             <p class="text-sm text-muted-foreground">
-                Vue d'ensemble des performances et statistiques
+                Overview of performance and statistics
             </p>
         </div>
 
@@ -79,13 +79,13 @@ const formatMonth = (month: string) => {
             <!-- Total Businesses -->
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between pb-2">
-                    <CardTitle class="text-sm font-medium">Entreprises Totales</CardTitle>
+                    <CardTitle class="text-sm font-medium">Total Businesses</CardTitle>
                     <Building2 class="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div class="text-2xl font-bold">{{ formatNumber(overview.total_businesses) }}</div>
                     <p class="text-xs text-muted-foreground mt-1">
-                        {{ overview.active_businesses }} actives
+                        {{ overview.active_businesses }} active
                     </p>
                 </CardContent>
             </Card>
@@ -93,13 +93,13 @@ const formatMonth = (month: string) => {
             <!-- Total Users -->
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between pb-2">
-                    <CardTitle class="text-sm font-medium">Utilisateurs</CardTitle>
+                    <CardTitle class="text-sm font-medium">Users</CardTitle>
                     <Users class="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div class="text-2xl font-bold">{{ formatNumber(overview.total_users) }}</div>
                     <p class="text-xs text-muted-foreground mt-1">
-                        {{ overview.orphan_businesses }} entreprises orphelines
+                        {{ overview.orphan_businesses }} orphan businesses
                     </p>
                 </CardContent>
             </Card>
@@ -107,13 +107,13 @@ const formatMonth = (month: string) => {
             <!-- Weekly Views -->
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between pb-2">
-                    <CardTitle class="text-sm font-medium">Vues Cette Semaine</CardTitle>
+                    <CardTitle class="text-sm font-medium">Views This Week</CardTitle>
                     <Eye class="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div class="text-2xl font-bold">{{ formatNumber(overview.weekly_views) }}</div>
                     <p class="text-xs text-muted-foreground mt-1">
-                        {{ formatNumber(overview.total_views) }} vues totales
+                        {{ formatNumber(overview.total_views) }} total views
                     </p>
                 </CardContent>
             </Card>
@@ -121,7 +121,7 @@ const formatMonth = (month: string) => {
             <!-- Average Growth -->
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between pb-2">
-                    <CardTitle class="text-sm font-medium">Croissance Moyenne</CardTitle>
+                    <CardTitle class="text-sm font-medium">Average Growth</CardTitle>
                     <BarChart3 class="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -133,7 +133,7 @@ const formatMonth = (month: string) => {
                         <TrendingDown v-else class="h-4 w-4 text-red-600" />
                     </div>
                     <p class="text-xs text-muted-foreground mt-1">
-                        Cette semaine
+                        This week
                     </p>
                 </CardContent>
             </Card>
@@ -143,8 +143,8 @@ const formatMonth = (month: string) => {
             <!-- Top Performing Businesses -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Top 10 Entreprises</CardTitle>
-                    <CardDescription>Par vues cette semaine</CardDescription>
+                    <CardTitle>Top 10 Businesses</CardTitle>
+                    <CardDescription>By views this week</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div v-if="top_businesses.length > 0" class="space-y-3">
@@ -162,7 +162,7 @@ const formatMonth = (month: string) => {
                                     <p class="font-medium truncate">{{ business.name }}</p>
                                     <div class="flex items-center gap-2 mt-1">
                                         <Badge variant="secondary" class="text-xs">
-                                            {{ formatNumber(business.views_this_week) }} vues
+                                            {{ formatNumber(business.views_this_week) }} views
                                         </Badge>
                                         <span
                                             v-if="business.growth_percentage !== null && business.growth_percentage !== undefined"
@@ -175,12 +175,12 @@ const formatMonth = (month: string) => {
                                 </div>
                             </div>
                             <Badge v-if="!business.is_active" variant="outline">
-                                Inactif
+                                Inactive
                             </Badge>
                         </Link>
                     </div>
                     <p v-else class="text-center text-sm text-muted-foreground py-8">
-                        Aucune donnée disponible
+                        No data available
                     </p>
                 </CardContent>
             </Card>
@@ -188,8 +188,8 @@ const formatMonth = (month: string) => {
             <!-- Recent Businesses -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Entreprises Récentes</CardTitle>
-                    <CardDescription>Créées dans les 7 derniers jours</CardDescription>
+                    <CardTitle>Recent Businesses</CardTitle>
+                    <CardDescription>Created in the last 7 days</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div v-if="recent_businesses.length > 0" class="space-y-3">
@@ -206,12 +206,12 @@ const formatMonth = (month: string) => {
                                 </p>
                             </div>
                             <Badge :variant="business.is_active ? 'default' : 'outline'">
-                                {{ business.is_active ? 'Actif' : 'Inactif' }}
+                                {{ business.is_active ? 'Active' : 'Inactive' }}
                             </Badge>
                         </Link>
                     </div>
                     <p v-else class="text-center text-sm text-muted-foreground py-8">
-                        Aucune nouvelle entreprise cette semaine
+                        No new businesses this week
                     </p>
                 </CardContent>
             </Card>
@@ -221,8 +221,8 @@ const formatMonth = (month: string) => {
             <!-- Businesses by Month -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Croissance des Entreprises</CardTitle>
-                    <CardDescription>Entreprises créées par mois (6 derniers mois)</CardDescription>
+                    <CardTitle>Business Growth</CardTitle>
+                    <CardDescription>Businesses created per month (last 6 months)</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div v-if="businesses_by_month.length > 0" class="space-y-2">
@@ -241,7 +241,7 @@ const formatMonth = (month: string) => {
                         </div>
                     </div>
                     <p v-else class="text-center text-sm text-muted-foreground py-8">
-                        Aucune donnée disponible
+                        No data available
                     </p>
                 </CardContent>
             </Card>
@@ -249,8 +249,8 @@ const formatMonth = (month: string) => {
             <!-- Top Users -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Utilisateurs Actifs</CardTitle>
-                    <CardDescription>Par nombre d'entreprises</CardDescription>
+                    <CardTitle>Active Users</CardTitle>
+                    <CardDescription>By number of businesses</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div v-if="top_users.length > 0" class="space-y-3">
@@ -270,12 +270,12 @@ const formatMonth = (month: string) => {
                                 </div>
                             </div>
                             <Badge variant="secondary">
-                                {{ user.businesses_count }} {{ user.businesses_count === 1 ? 'entreprise' : 'entreprises' }}
+                                {{ user.businesses_count }} {{ user.businesses_count === 1 ? 'business' : 'businesses' }}
                             </Badge>
                         </Link>
                     </div>
                     <p v-else class="text-center text-sm text-muted-foreground py-8">
-                        Aucun utilisateur avec des entreprises
+                        No users with businesses
                     </p>
                 </CardContent>
             </Card>

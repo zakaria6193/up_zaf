@@ -25,7 +25,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Connexion Administrateur" />
+    <Head title="Admin Login" />
 
     <div class="flex min-h-screen items-center justify-center bg-background p-4">
         <Card class="w-full max-w-md border-border shadow-none">
@@ -33,9 +33,9 @@ const submit = () => {
                 <div class="mb-4 flex justify-center">
                     <AppLogo class="h-12 w-auto" />
                 </div>
-                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Connexion Administrateur</CardTitle>
+                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Admin Login</CardTitle>
                 <CardDescription>
-                    Entrez vos identifiants pour accéder au panneau d'administration
+                    Enter your credentials to access the admin panel
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -45,7 +45,7 @@ const submit = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="email">Nom d'utilisateur</Label>
+                        <Label for="email">Username</Label>
                         <Input
                             id="email"
                             v-model="form.email"
@@ -61,7 +61,7 @@ const submit = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="password">Mot de passe</Label>
+                        <Label for="password">Password</Label>
                         <Input
                             id="password"
                             v-model="form.password"
@@ -79,7 +79,7 @@ const submit = () => {
                         class="w-full"
                         :disabled="form.processing"
                     >
-                        {{ form.processing ? 'Connexion...' : 'Se connecter' }}
+                        {{ form.processing ? 'Signing in...' : 'Log in' }}
                     </Button>
                 </form>
             </CardContent>

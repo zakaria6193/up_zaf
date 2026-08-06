@@ -16,8 +16,8 @@ import { QrCode, Pencil, Trash2, ExternalLink, Star } from 'lucide-vue-next';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Entreprises' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Businesses' },
         ],
     },
 });
@@ -138,19 +138,19 @@ const generateMiniChartData = () => {
 </script>
 
 <template>
-    <Head title="Entreprises" />
+    <Head title="Businesses" />
 
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Entreprises</h1>
+                <h1 class="text-2xl font-semibold">Businesses</h1>
                 <p class="text-sm text-muted-foreground">
-                    Gérer vos entreprises et codes QR
+                    Manage your businesses and QR codes
                 </p>
             </div>
             <Button @click="showCreateModal = true">
-                Ajouter une entreprise
+                Add business
             </Button>
         </div>
 
@@ -159,7 +159,7 @@ const generateMiniChartData = () => {
             <Input
                 v-model="search"
                 type="search"
-                placeholder="Rechercher des entreprises..."
+                placeholder="Search businesses..."
                 class="max-w-sm"
             />
         </div>
@@ -198,11 +198,11 @@ const generateMiniChartData = () => {
                                 {{ business.name }}
                             </h3>
                             <Badge :variant="business.is_active ? 'default' : 'secondary'" class="shrink-0">
-                                {{ business.is_active ? 'Actif' : 'Inactif' }}
+                                {{ business.is_active ? 'Active' : 'Inactive' }}
                             </Badge>
                         </div>
                         <p class="text-sm text-muted-foreground mb-1">
-                            ID: {{ business.nanoid }} • Créé le {{ business.created_at }}
+                            ID: {{ business.nanoid }} • Created {{ business.created_at }}
                         </p>
                         <p v-if="business.address" class="text-sm text-muted-foreground truncate">
                             {{ business.address }}
@@ -215,7 +215,7 @@ const generateMiniChartData = () => {
                         <div class="text-right">
                             <div class="flex items-baseline gap-1 justify-end">
                                 <span class="text-xl font-bold">{{ business.views_this_week }}</span>
-                                <span class="text-xs text-muted-foreground">vues</span>
+                                <span class="text-xs text-muted-foreground">views</span>
                             </div>
                             <div
                                 class="text-xs font-medium"
@@ -243,7 +243,7 @@ const generateMiniChartData = () => {
                             size="icon"
                             variant="ghost"
                             @click.prevent="openQRModal(business)"
-                            title="Voir le QR Code"
+                            title="View QR Code"
                         >
                             <QrCode class="h-4 w-4" />
                         </Button>
@@ -253,7 +253,7 @@ const generateMiniChartData = () => {
                             size="icon"
                             variant="ghost"
                             @click.prevent="openReviewCardModal(business)"
-                            title="Générer carte de visite"
+                            title="Generate business card"
                         >
                             <Star class="h-4 w-4" />
                         </Button>
@@ -263,7 +263,7 @@ const generateMiniChartData = () => {
                             size="icon"
                             variant="ghost"
                             as-child
-                            title="Modifier"
+                            title="Edit"
                         >
                             <Link :href="edit.url(business.nanoid)">
                                 <Pencil class="h-4 w-4" />
@@ -277,7 +277,7 @@ const generateMiniChartData = () => {
                             as="a"
                             :href="business.public_url"
                             target="_blank"
-                            title="Voir la page publique"
+                            title="View public page"
                         >
                             <ExternalLink class="h-4 w-4" />
                         </Button>
@@ -287,7 +287,7 @@ const generateMiniChartData = () => {
                             <Switch
                                 :checked="business.is_active"
                                 @update:checked="() => toggleActive(business)"
-                                title="Activer/Désactiver"
+                                title="Enable/Disable"
                             />
                         </div>
 
@@ -297,7 +297,7 @@ const generateMiniChartData = () => {
                             variant="ghost"
                             class="text-destructive hover:text-destructive hover:bg-destructive/10"
                             @click.prevent="openDeleteDialog(business)"
-                            title="Supprimer"
+                            title="Delete"
                         >
                             <Trash2 class="h-4 w-4" />
                         </Button>
@@ -322,12 +322,12 @@ const generateMiniChartData = () => {
                     d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"
                 />
             </svg>
-            <h3 class="mb-2 text-lg font-semibold">Aucune entreprise pour le moment</h3>
+            <h3 class="mb-2 text-lg font-semibold">No businesses yet</h3>
             <p class="mb-4 text-sm text-muted-foreground">
-                Commencez par créer votre première entreprise
+                Start by creating your first business
             </p>
             <Button @click="showCreateModal = true">
-                Ajouter votre première entreprise
+                Add your first business
             </Button>
         </div>
 
@@ -337,8 +337,8 @@ const generateMiniChartData = () => {
             class="flex items-center justify-between"
         >
             <p class="text-sm text-muted-foreground">
-                Affichage de {{ businesses.meta?.from }} à {{ businesses.meta?.to }} sur
-                {{ businesses.meta?.total }} entreprises
+                Showing {{ businesses.meta?.from }} to {{ businesses.meta?.to }} of
+                {{ businesses.meta?.total }} businesses
             </p>
             <div class="flex gap-2">
                 <Button
@@ -347,7 +347,7 @@ const generateMiniChartData = () => {
                     variant="outline"
                     size="sm"
                 >
-                    <Link :href="businesses.links.prev">Précédent</Link>
+                    <Link :href="businesses.links.prev">Previous</Link>
                 </Button>
                 <Button
                     v-if="businesses.links.next"
@@ -355,7 +355,7 @@ const generateMiniChartData = () => {
                     variant="outline"
                     size="sm"
                 >
-                    <Link :href="businesses.links.next">Suivant</Link>
+                    <Link :href="businesses.links.next">Next</Link>
                 </Button>
             </div>
         </div>
@@ -383,8 +383,8 @@ const generateMiniChartData = () => {
         <DeleteConfirmDialog
             v-if="selectedBusiness"
             v-model:open="showDeleteDialog"
-            title="Supprimer l'entreprise"
-            description="Êtes-vous sûr de vouloir supprimer"
+            title="Delete business"
+            description="Are you sure you want to delete"
             :item-name="selectedBusiness.name"
             @confirm="handleDelete"
         />

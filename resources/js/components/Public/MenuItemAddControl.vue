@@ -22,7 +22,7 @@ const softBrand = computed(() => `${props.brandColor}18`);
             <button
                 type="button"
                 class="flex h-11 w-11 items-center justify-center rounded-full bg-white text-stone-700 shadow-sm ring-1 ring-stone-200 transition hover:bg-stone-50 active:scale-95"
-                aria-label="Retirer"
+                aria-label="Remove"
                 @click.stop="emit('decrement')"
             >
                 <Minus class="h-4 w-4" />
@@ -34,7 +34,7 @@ const softBrand = computed(() => `${props.brandColor}18`);
                 type="button"
                 class="flex h-11 w-11 items-center justify-center rounded-full text-white shadow-sm transition hover:opacity-90 active:scale-95"
                 :style="{ backgroundColor: brandColor }"
-                aria-label="Ajouter"
+                aria-label="Add"
                 @click.stop="emit('increment')"
             >
                 <Plus class="h-4 w-4" />
@@ -49,7 +49,7 @@ const softBrand = computed(() => `${props.brandColor}18`);
                 color: brandColor,
                 boxShadow: `inset 0 0 0 1px ${brandColor}40`,
             }"
-            aria-label="Ajouter au panier"
+            aria-label="Add to cart"
             @click.stop="emit('add')"
         >
             <Plus class="h-5 w-5" stroke-width="2.5" />

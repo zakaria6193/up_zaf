@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Business;
 use App\Models\BusinessUser;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,6 +40,18 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        $businesses = $user instanceof BusinessUser
+            ? $user->businesses()
+                ->orderBy('name')
+                ->get(['id', 'business_user_id', 'nanoid', 'name'])
+                ->map(fn (Business $business): array => [
+                    'nanoid' => $business->nanoid,
+                    'name' => $business->name,
+                ])
+                ->values()
+                ->all()
+            : [];
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -51,6 +64,7 @@ class HandleInertiaRequests extends Middleware
                     'subscription' => $user instanceof BusinessUser
                         ? $user->subscriptionPayload()
                         : null,
+                    'businesses' => $businesses,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

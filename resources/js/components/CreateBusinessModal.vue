@@ -207,9 +207,9 @@ const resetForm = () => {
     <Dialog v-model:open="open" @update:open="(val) => !val && resetForm()">
         <DialogContent class="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle>Créer une nouvelle entreprise</DialogTitle>
+                <DialogTitle>Create new business</DialogTitle>
                 <DialogDescription>
-                    Étape {{ currentStep }} sur {{ totalSteps }}
+                    Step {{ currentStep }} of {{ totalSteps }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -227,7 +227,7 @@ const resetForm = () => {
                 <!-- Step 1: Business Name & Owner -->
                 <div v-if="currentStep === 1" class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="name">Nom de l'entreprise *</Label>
+                        <Label for="name">Business name *</Label>
                         <Input
                             id="name"
                             v-model="form.name"
@@ -248,7 +248,7 @@ const resetForm = () => {
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                     <Upload class="w-8 h-8 mb-2 text-muted-foreground" />
                                     <p class="mb-1 text-sm text-muted-foreground">
-                                        <span class="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
+                                        <span class="font-semibold">Click to upload</span> or drag and drop
                                     </p>
                                     <p class="text-xs text-muted-foreground">PNG, JPG (MAX. 2MB)</p>
                                 </div>
@@ -280,13 +280,13 @@ const resetForm = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="business_user_id">Propriétaire (Optionnel)</Label>
+                        <Label for="business_user_id">Owner (Optional)</Label>
                         <div class="relative">
                             <div class="relative">
                                 <Input
                                     v-model="userSearch"
                                     type="text"
-                                    placeholder="Rechercher un utilisateur..."
+                                    placeholder="Search for a user..."
                                     @focus="showUserDropdown = true"
                                     @blur="setTimeout(() => showUserDropdown = false, 200)"
                                     :value="selectedUserName || userSearch"
@@ -303,7 +303,7 @@ const resetForm = () => {
                                         class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                                         @click="selectUser(null)"
                                     >
-                                        Aucun (Entreprise orpheline)
+                                        None (orphan business)
                                     </div>
                                     <div
                                         v-for="user in filteredUsers"
@@ -321,13 +321,13 @@ const resetForm = () => {
                                         v-if="filteredUsers.length === 0"
                                         class="px-2 py-6 text-center text-sm text-muted-foreground"
                                     >
-                                        Aucun utilisateur trouvé
+                                        No users found
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            Sélectionnez un utilisateur ou laissez vide pour une entreprise orpheline
+                            Select a user or leave empty for an orphan business
                         </p>
                     </div>
                 </div>
@@ -346,20 +346,20 @@ const resetForm = () => {
                 <!-- Step 3: Branding -->
                 <div v-if="currentStep === 3" class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="seo_title">Titre de la page (SEO)</Label>
+                        <Label for="seo_title">Page title (SEO)</Label>
                         <Input
                             id="seo_title"
                             v-model="form.seo_title"
                             type="text"
-                            placeholder="Titre personnalisé (optionnel)"
+                            placeholder="Custom title (optional)"
                         />
                         <p class="text-xs text-muted-foreground">
-                            Si vide, le nom de l'entreprise sera utilisé
+                            If empty, the business name will be used
                         </p>
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="color">Couleur de marque</Label>
+                        <Label for="color">Brand color</Label>
                         <div class="flex items-center gap-3">
                             <input
                                 id="color"
@@ -377,7 +377,7 @@ const resetForm = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="currency">Devise</Label>
+                        <Label for="currency">Currency</Label>
                         <select
                             id="currency"
                             v-model="form.currency"
@@ -390,7 +390,7 @@ const resetForm = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label>Design du QR *</Label>
+                        <Label>QR design *</Label>
                         <QrStylePicker
                             v-model="form.qr_style"
                             :styles="qrStyleOptions"
@@ -401,26 +401,26 @@ const resetForm = () => {
 
                     <!-- Summary -->
                     <div class="rounded-lg border bg-muted/30 p-4 space-y-3">
-                        <h3 class="font-semibold">Récapitulatif</h3>
+                        <h3 class="font-semibold">Summary</h3>
 
                         <div class="space-y-2 text-sm">
                             <div>
-                                <span class="text-muted-foreground">Nom:</span>
+                                <span class="text-muted-foreground">Name:</span>
                                 <span class="ml-2 font-medium">{{ form.name }}</span>
                             </div>
 
                             <div v-if="selectedUserName">
-                                <span class="text-muted-foreground">Propriétaire:</span>
+                                <span class="text-muted-foreground">Owner:</span>
                                 <span class="ml-2 font-medium">{{ selectedUserName }}</span>
                             </div>
 
                             <div v-if="form.address">
-                                <span class="text-muted-foreground">Adresse:</span>
+                                <span class="text-muted-foreground">Address:</span>
                                 <span class="ml-2 font-medium">{{ form.address }}</span>
                             </div>
 
                             <div>
-                                <span class="text-muted-foreground">Couleur:</span>
+                                <span class="text-muted-foreground">Color:</span>
                                 <span class="ml-2 inline-block h-4 w-8 rounded border" :style="{ backgroundColor: form.color }"></span>
                             </div>
 
@@ -441,7 +441,7 @@ const resetForm = () => {
                         @click="prevStep"
                     >
                         <ChevronLeft class="mr-2 h-4 w-4" />
-                        Précédent
+                        Previous
                     </Button>
 
                     <div class="flex-1"></div>
@@ -452,7 +452,7 @@ const resetForm = () => {
                         @click="nextStep"
                         :disabled="!canGoNext"
                     >
-                        Suivant
+                        Next
                         <ChevronRight class="ml-2 h-4 w-4" />
                     </Button>
 
@@ -462,7 +462,7 @@ const resetForm = () => {
                         @click="submit"
                         :disabled="processing"
                     >
-                        {{ processing ? 'Création...' : 'Créer l\'entreprise' }}
+                        {{ processing ? 'Creating...' : 'Create business' }}
                     </Button>
                 </div>
             </div>

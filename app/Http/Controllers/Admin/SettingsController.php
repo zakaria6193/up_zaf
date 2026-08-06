@@ -36,7 +36,7 @@ class SettingsController extends Controller
 
         $user->update($validated);
 
-        return back()->with('success', 'Profil mis à jour avec succès!');
+        return back()->with('success', 'Profile updated successfully!');
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -50,6 +50,6 @@ class SettingsController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'Mot de passe mis à jour avec succès!');
+        return back()->with('success', 'Password updated successfully!');
     }
 }

@@ -9,9 +9,9 @@ import { update, index, show } from '@/actions/App/Http/Controllers/Admin/UserCo
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Utilisateurs', href: index.url() },
-            { title: 'Modifier' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Users', href: index.url() },
+            { title: 'Edit' },
         ],
     },
 });
@@ -41,20 +41,20 @@ const submit = () => {
 </script>
 
 <template>
-    <Head :title="`Modifier: ${user.name}`" />
+    <Head :title="`Edit: ${user.name}`" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div class="flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Modifier l'utilisateur</h1>
+                <h1 class="text-2xl font-semibold">Edit user</h1>
                 <p class="text-sm text-muted-foreground">
-                    Mettre à jour les informations de {{ user.name }}
+                    Update information for {{ user.name }}
                 </p>
             </div>
             <div class="flex gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="show.url(user.id)">Retour</Link>
+                    <Link :href="show.url(user.id)">Back</Link>
                 </Button>
             </div>
         </div>
@@ -63,15 +63,15 @@ const submit = () => {
         <form @submit.prevent="submit" class="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Informations de l'utilisateur</CardTitle>
+                    <CardTitle>User information</CardTitle>
                     <CardDescription>
-                        Modifiez les détails de l'utilisateur
+                        Edit the user's details
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Name -->
                     <div class="space-y-2">
-                        <Label for="name">Nom complet *</Label>
+                        <Label for="name">Full name *</Label>
                         <Input
                             id="name"
                             v-model="form.name"
@@ -102,7 +102,7 @@ const submit = () => {
 
                     <!-- Phone -->
                     <div class="space-y-2">
-                        <Label for="phone">Téléphone</Label>
+                        <Label for="phone">Phone</Label>
                         <Input
                             id="phone"
                             v-model="form.phone"
@@ -113,7 +113,7 @@ const submit = () => {
                         <p v-if="form.errors.phone" class="text-sm text-destructive">
                             {{ form.errors.phone }}
                         </p>
-                        <p class="text-xs text-muted-foreground">Optionnel</p>
+                        <p class="text-xs text-muted-foreground">Optional</p>
                     </div>
                 </CardContent>
             </Card>
@@ -121,15 +121,15 @@ const submit = () => {
             <!-- Password Change Section -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Changer le mot de passe</CardTitle>
+                    <CardTitle>Change password</CardTitle>
                     <CardDescription>
-                        Laissez vide pour conserver le mot de passe actuel
+                        Leave blank to keep the current password
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Password -->
                     <div class="space-y-2">
-                        <Label for="password">Nouveau mot de passe</Label>
+                        <Label for="password">New password</Label>
                         <Input
                             id="password"
                             v-model="form.password"
@@ -140,13 +140,13 @@ const submit = () => {
                             {{ form.errors.password }}
                         </p>
                         <p class="text-xs text-muted-foreground">
-                            Minimum 8 caractères
+                            Minimum 8 characters
                         </p>
                     </div>
 
                     <!-- Password Confirmation -->
                     <div class="space-y-2">
-                        <Label for="password_confirmation">Confirmer le nouveau mot de passe</Label>
+                        <Label for="password_confirmation">Confirm new password</Label>
                         <Input
                             id="password_confirmation"
                             v-model="form.password_confirmation"
@@ -159,10 +159,10 @@ const submit = () => {
             <!-- Actions -->
             <div class="flex gap-3">
                 <Button type="submit" :disabled="form.processing">
-                    {{ form.processing ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+                    {{ form.processing ? 'Saving...' : 'Save changes' }}
                 </Button>
                 <Button type="button" variant="outline" as-child>
-                    <Link :href="show.url(user.id)">Annuler</Link>
+                    <Link :href="show.url(user.id)">Cancel</Link>
                 </Button>
             </div>
         </form>

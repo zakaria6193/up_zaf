@@ -10,9 +10,9 @@ import { User, Mail, Phone, Calendar, Building2 } from 'lucide-vue-next';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Utilisateurs', href: index.url() },
-            { title: 'Détails' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Users', href: index.url() },
+            { title: 'Details' },
         ],
     },
 });
@@ -36,7 +36,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head :title="`Utilisateur: ${user.name}`" />
+    <Head :title="`User: ${user.name}`" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
@@ -44,15 +44,15 @@ const props = defineProps<{
             <div>
                 <h1 class="text-2xl font-semibold">{{ user.name }}</h1>
                 <p class="text-sm text-muted-foreground">
-                    Détails de l'utilisateur
+                    User details
                 </p>
             </div>
             <div class="flex gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="index.url()">Retour</Link>
+                    <Link :href="index.url()">Back</Link>
                 </Button>
                 <Button as-child>
-                    <Link :href="edit.url(user.id)">Modifier</Link>
+                    <Link :href="edit.url(user.id)">Edit</Link>
                 </Button>
             </div>
         </div>
@@ -66,7 +66,7 @@ const props = defineProps<{
                     </div>
                     <div>
                         <CardTitle>{{ user.name }}</CardTitle>
-                        <CardDescription>Informations du compte</CardDescription>
+                        <CardDescription>Account information</CardDescription>
                     </div>
                 </div>
             </CardHeader>
@@ -85,9 +85,9 @@ const props = defineProps<{
                     <div class="flex items-start gap-3">
                         <Phone class="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
-                            <p class="text-sm font-medium">Téléphone</p>
+                            <p class="text-sm font-medium">Phone</p>
                             <p class="text-sm text-muted-foreground">
-                                {{ user.phone || 'Non renseigné' }}
+                                {{ user.phone || 'Not provided' }}
                             </p>
                         </div>
                     </div>
@@ -96,7 +96,7 @@ const props = defineProps<{
                     <div class="flex items-start gap-3">
                         <Calendar class="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
-                            <p class="text-sm font-medium">Créé le</p>
+                            <p class="text-sm font-medium">Created</p>
                             <p class="text-sm text-muted-foreground">{{ user.created_at }}</p>
                         </div>
                     </div>
@@ -105,9 +105,9 @@ const props = defineProps<{
                     <div class="flex items-start gap-3">
                         <Building2 class="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
-                            <p class="text-sm font-medium">Entreprises</p>
+                            <p class="text-sm font-medium">Businesses</p>
                             <p class="text-sm text-muted-foreground">
-                                {{ businesses.length }} {{ businesses.length === 1 ? 'entreprise' : 'entreprises' }}
+                                {{ businesses.length }} {{ businesses.length === 1 ? 'business' : 'businesses' }}
                             </p>
                         </div>
                     </div>
@@ -118,8 +118,8 @@ const props = defineProps<{
         <!-- Businesses Card -->
         <Card>
             <CardHeader>
-                <CardTitle>Entreprises ({{ businesses.length }})</CardTitle>
-                <CardDescription>Entreprises gérées par cet utilisateur</CardDescription>
+                <CardTitle>Businesses ({{ businesses.length }})</CardTitle>
+                <CardDescription>Businesses managed by this user</CardDescription>
             </CardHeader>
             <CardContent>
                 <div v-if="businesses.length > 0" class="space-y-3">
@@ -133,23 +133,23 @@ const props = defineProps<{
                             <div class="flex items-center gap-2 mb-1">
                                 <p class="font-medium truncate">{{ business.name }}</p>
                                 <Badge :variant="business.is_active ? 'default' : 'outline'">
-                                    {{ business.is_active ? 'Actif' : 'Inactif' }}
+                                    {{ business.is_active ? 'Active' : 'Inactive' }}
                                 </Badge>
                             </div>
                             <p v-if="business.address" class="text-sm text-muted-foreground truncate">
                                 {{ business.address }}
                             </p>
                             <p class="text-xs text-muted-foreground mt-1">
-                                Créée le {{ business.created_at }}
+                                Created {{ business.created_at }}
                             </p>
                         </div>
                     </Link>
                 </div>
                 <div v-else class="flex min-h-[200px] flex-col items-center justify-center text-center">
                     <Building2 class="h-12 w-12 text-muted-foreground mb-4" />
-                    <p class="text-sm font-medium mb-1">Aucune entreprise</p>
+                    <p class="text-sm font-medium mb-1">No businesses</p>
                     <p class="text-sm text-muted-foreground">
-                        Cet utilisateur ne gère aucune entreprise pour le moment
+                        This user has no businesses yet
                     </p>
                 </div>
             </CardContent>

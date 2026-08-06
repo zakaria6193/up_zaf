@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { LayoutGrid, Users, BarChart3, Building2, Settings } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
+import NavBusinesses from '@/components/NavBusinesses.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -23,47 +24,51 @@ const isAdmin = computed(() => user.value?.is_admin);
 
 const adminNavItems: NavItem[] = [
     {
-        title: 'Tableau de bord',
+        title: 'Dashboard',
         href: '/adminos/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Entreprises',
+        title: 'Businesses',
         href: '/adminos/businesses',
         icon: Building2,
     },
     {
-        title: 'Utilisateurs',
+        title: 'Users',
         href: '/adminos/users',
         icon: Users,
     },
     {
-        title: 'Rapports',
+        title: 'Reports',
         href: '/adminos/reports',
         icon: BarChart3,
     },
     {
-        title: 'Paramètres',
+        title: 'Settings',
         href: '/adminos/settings',
         icon: Settings,
     },
 ];
 
-/** Business tools (menu, QR, links, profile) live under Manage for a chosen enterprise. */
+/**
+ * Global account nav only. Menu, QR, links, and profile stay inside each
+ * business's setup screens (opened from the dashboard), not the sidebar.
+ */
 const businessNavItems: NavItem[] = [
     {
-        title: 'Tableau de bord',
+        title: 'Dashboard',
         href: '/business/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Paramètres',
+        title: 'Account',
         href: '/business/settings',
         icon: Settings,
     },
 ];
 
 const mainNavItems = computed(() => (isAdmin.value ? adminNavItems : businessNavItems));
+const navGroupLabel = computed(() => (isAdmin.value ? 'Admin' : 'Main'));
 const dashboardHref = computed(() => (isAdmin.value ? '/adminos/dashboard' : '/business/dashboard'));
 </script>
 
@@ -82,7 +87,8 @@ const dashboardHref = computed(() => (isAdmin.value ? '/adminos/dashboard' : '/b
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="mainNavItems" :label="navGroupLabel" />
+            <NavBusinesses v-if="!isAdmin" />
         </SidebarContent>
 
         <SidebarFooter>

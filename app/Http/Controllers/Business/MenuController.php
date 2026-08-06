@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\Business;
 
 use App\Http\Controllers\Controller;
+use App\Models\BusinessUser;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
+use App\Services\GeminiMenuImporter;
 use App\Support\Currency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
+use Throwable;
 
 class MenuController extends Controller
 {
@@ -83,6 +88,11 @@ class MenuController extends Controller
                 'nanoid' => $b->nanoid,
                 'name' => $b->name,
             ])->values(),
+            'subscription' => $user instanceof BusinessUser
+                ? $user->subscriptionPayload()
+                : null,
+            'geminiEnabled' => app(GeminiMenuImporter::class)->configured(),
+            'menuImportDraft' => session('menu_import_draft'),
         ]);
     }
 
@@ -344,5 +354,108 @@ class MenuController extends Controller
             'success',
             $item->is_active ? 'Item activated successfully!' : 'Item deactivated successfully!'
         );
+    }
+
+    /**
+     * Parse a menu photo with Gemini (premium only) and return a review draft.
+     */
+    public function parseFromImage(Request $request, string $nanoid, GeminiMenuImporter $importer): RedirectResponse
+    {
+        /** @var BusinessUser $user */
+        $user = auth()->user();
+        $business = $user->businesses()->where('nanoid', $nanoid)->firstOrFail();
+
+        if (! $user->isPremium()) {
+            return back()->with('error', 'Menu import from photo is available for Premium accounts only.');
+        }
+
+        if (! $importer->configured()) {
+            return back()->with('error', 'Menu import is not configured yet. Add a Gemini API key.');
+        }
+
+        $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+        ]);
+
+        try {
+            $categories = $importer->extract($request->file('image'));
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (Throwable) {
+            return back()->with('error', 'Menu import failed. Please try again.');
+        }
+
+        session([
+            'menu_import_draft' => [
+                'business_nanoid' => $business->nanoid,
+                'categories' => $categories,
+            ],
+        ]);
+
+        return back()->with('success', 'Menu detected — review the draft then import.');
+    }
+
+    /**
+     * Persist a reviewed Gemini menu draft into categories and items.
+     */
+    public function confirmImport(Request $request, string $nanoid): RedirectResponse
+    {
+        /** @var BusinessUser $user */
+        $user = auth()->user();
+        $business = $user->businesses()->where('nanoid', $nanoid)->firstOrFail();
+
+        if (! $user->isPremium()) {
+            return back()->with('error', 'Menu import from photo is available for Premium accounts only.');
+        }
+
+        $validated = $request->validate([
+            'categories' => ['required', 'array', 'min:1'],
+            'categories.*.name' => ['required', 'string', 'max:255'],
+            'categories.*.items' => ['required', 'array', 'min:1'],
+            'categories.*.items.*.name' => ['required', 'string', 'max:255'],
+            'categories.*.items.*.description' => ['nullable', 'string', 'max:1000'],
+            'categories.*.items.*.price' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $startingCategoryOrder = ((int) $business->menuCategories()->whereNull('parent_id')->max('order')) + 1;
+
+        DB::transaction(function () use ($business, $validated, $startingCategoryOrder): void {
+            foreach (array_values($validated['categories']) as $categoryIndex => $categoryData) {
+                $category = $business->menuCategories()->create([
+                    'name' => $categoryData['name'],
+                    'order' => $startingCategoryOrder + $categoryIndex,
+                    'parent_id' => null,
+                ]);
+
+                foreach (array_values($categoryData['items']) as $itemIndex => $itemData) {
+                    $category->items()->create([
+                        'name' => $itemData['name'],
+                        'description' => $itemData['description'] ?? null,
+                        'price' => $itemData['price'] ?? 0,
+                        'order' => $itemIndex + 1,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        });
+
+        session()->forget('menu_import_draft');
+
+        return redirect()
+            ->route('business.menu', ['business' => $business->nanoid])
+            ->with('success', 'Menu imported successfully!');
+    }
+
+    /**
+     * Discard a pending Gemini menu draft.
+     */
+    public function dismissImport(string $nanoid): RedirectResponse
+    {
+        $user = auth()->user();
+        $user->businesses()->where('nanoid', $nanoid)->firstOrFail();
+
+        session()->forget('menu_import_draft');
+
+        return back();
     }
 }

@@ -37,19 +37,19 @@ const templates = {
         bgColor: '#FAFAFA',
         textColor: '#262626',
         accentColor: '#E1306C',
-        text: 'Suivez-nous sur Instagram\npour plus de contenu',
+        text: 'Follow us on Instagram\nfor more content',
     },
     google: {
         bgColor: '#FFFFFF',
         textColor: '#202124',
         accentColor: '#4285F4',
-        text: 'Votre avis compte !\nScannez pour laisser un avis',
+        text: 'Your review matters!\nScan to leave a review',
     },
     general: {
         bgColor: '#FFFFFF',
         textColor: '#000000',
         accentColor: props.businessColor || '#4d54d9',
-        text: 'Scannez pour découvrir\nnotre carte digitale',
+        text: 'Scan to discover\nour digital menu',
     },
 };
 
@@ -346,9 +346,9 @@ selectType('google');
     <Dialog v-model:open="open">
         <DialogContent class="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle>Générer une carte de visite</DialogTitle>
+                <DialogTitle>Generate business card</DialogTitle>
                 <DialogDescription>
-                    Personnalisez et téléchargez votre carte de visite
+                    Customize and download your business card
                 </DialogDescription>
             </DialogHeader>
 
@@ -357,7 +357,7 @@ selectType('google');
                 <div class="space-y-6">
                     <!-- Card Type Selection -->
                     <div class="space-y-3">
-                        <Label>Type de carte</Label>
+                        <Label>Card type</Label>
                         <div class="grid grid-cols-3 gap-2">
                             <Button
                                 variant="outline"
@@ -384,7 +384,7 @@ selectType('google');
                                 class="flex flex-col items-center gap-2 h-auto py-4"
                             >
                                 <FileText class="h-5 w-5" />
-                                <span class="text-xs">Général</span>
+                                <span class="text-xs">General</span>
                             </Button>
                         </div>
                     </div>
@@ -413,19 +413,19 @@ selectType('google');
                     <!-- Customization -->
                     <div class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="customText">Texte personnalisé</Label>
+                            <Label for="customText">Custom text</Label>
                             <textarea
                                 id="customText"
                                 v-model="customText"
                                 rows="3"
                                 class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-                                placeholder="Entrez votre texte..."
+                                placeholder="Enter your text..."
                             />
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
                             <div class="space-y-2">
-                                <Label for="bgColor">Fond</Label>
+                                <Label for="bgColor">Background</Label>
                                 <input
                                     id="bgColor"
                                     v-model="bgColor"
@@ -435,7 +435,7 @@ selectType('google');
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="textColor">Texte</Label>
+                                <Label for="textColor">Text</Label>
                                 <input
                                     id="textColor"
                                     v-model="textColor"
@@ -459,7 +459,7 @@ selectType('google');
 
                 <!-- Right: Preview -->
                 <div class="space-y-4">
-                    <Label>Aperçu</Label>
+                    <Label>Preview</Label>
                     <div class="rounded-lg border bg-muted/30 p-4 flex items-center justify-center">
                         <div
                             class="shadow-lg rounded-lg overflow-hidden"
@@ -512,7 +512,7 @@ selectType('google');
                     </div>
 
                     <Button @click="generatePDF" class="w-full" size="lg">
-                        Générer le PDF
+                        Generate PDF
                     </Button>
                 </div>
             </div>

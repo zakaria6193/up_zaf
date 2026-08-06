@@ -138,15 +138,15 @@ const handleTabChange = (value: string | number) => {
 </script>
 
 <template>
-    <Head title="Business Profile" />
+    <Head title="Business setup" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold">Business Profile</h1>
+                <h1 class="text-3xl font-bold">Business setup</h1>
                 <p class="text-sm text-muted-foreground">
-                    Manage your business information and settings
+                    Profile, menu, QR code, and links for this business
                 </p>
             </div>
 

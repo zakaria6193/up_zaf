@@ -32,7 +32,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Connexion Entreprise" />
+    <Head title="Business Login" />
 
     <div class="flex min-h-screen items-center justify-center bg-background p-4">
         <Card class="w-full max-w-md border-border shadow-none">
@@ -40,9 +40,9 @@ const submit = () => {
                 <div class="mb-4 flex justify-center">
                     <AppLogo class="h-12 w-auto" />
                 </div>
-                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Connexion Entreprise</CardTitle>
+                <CardTitle class="font-serif text-2xl font-semibold tracking-tight">Business Login</CardTitle>
                 <CardDescription>
-                    Entrez votre e-mail ou numéro de téléphone et votre mot de passe
+                    Enter your email or phone number and password
                 </CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
@@ -64,23 +64,23 @@ const submit = () => {
                         <path fill="#4A90E2" d="M3.4 7.2C2.7 8.6 2.3 10.2 2.3 12s.4 3.4 1.1 4.8l3.2-2.5c-.2-.6-.3-1.2-.3-2.3 0-1 .1-1.7.3-2.3L3.4 7.2z" />
                         <path fill="#FBBC05" d="M12 5.5c1.5 0 2.8.5 3.8 1.5l2.8-2.8C16.9 2.5 14.7 1.5 12 1.5 8.3 1.5 5.1 3.6 3.4 7.2l3.2 2.5C7.2 7.3 9.4 5.5 12 5.5z" />
                     </svg>
-                    Continuer avec Google
+                    Continue with Google
                 </a>
 
                 <div v-if="googleEnabled" class="relative py-1 text-center text-xs text-muted-foreground">
-                    <span class="bg-card relative z-10 px-2">ou</span>
+                    <span class="bg-card relative z-10 px-2">or</span>
                     <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
                 </div>
 
                 <form class="space-y-4" @submit.prevent="submit">
                     <div class="space-y-2">
-                        <Label for="phone">E-mail ou téléphone</Label>
+                        <Label for="phone">Email or phone</Label>
                         <Input
                             id="phone"
                             v-model="form.phone"
                             type="text"
                             autocomplete="username"
-                            placeholder="mohamed@example.com ou +212600111111"
+                            placeholder="mohamed@example.com or +212600111111"
                             :class="{ 'border-destructive': form.errors.phone || form.errors.email }"
                             required
                             autofocus
@@ -91,7 +91,7 @@ const submit = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="password">Mot de passe</Label>
+                        <Label for="password">Password</Label>
                         <Input
                             id="password"
                             v-model="form.password"
@@ -106,19 +106,19 @@ const submit = () => {
                     </div>
 
                     <Button type="submit" class="w-full" :disabled="form.processing">
-                        {{ form.processing ? 'Connexion...' : 'Se connecter' }}
+                        {{ form.processing ? 'Signing in...' : 'Log in' }}
                     </Button>
                 </form>
 
                 <p class="text-center text-sm text-muted-foreground">
-                    Pas encore de compte ?
+                    Don't have an account?
                     <Link href="/register" class="font-medium text-foreground underline-offset-4 hover:underline">
-                        S'inscrire
+                        Sign up
                     </Link>
                 </p>
 
                 <p class="text-center text-xs text-muted-foreground">
-                    <Link href="/" class="hover:underline">← Retour à l'accueil</Link>
+                    <Link href="/" class="hover:underline">← Back to home</Link>
                 </p>
             </CardContent>
         </Card>

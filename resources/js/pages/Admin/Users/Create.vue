@@ -9,9 +9,9 @@ import { store, index } from '@/actions/App/Http/Controllers/Admin/UserControlle
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Tableau de bord', href: '/adminos/dashboard' },
-            { title: 'Utilisateurs', href: index.url() },
-            { title: 'Créer' },
+            { title: 'Dashboard', href: '/adminos/dashboard' },
+            { title: 'Users', href: index.url() },
+            { title: 'Create' },
         ],
     },
 });
@@ -32,19 +32,19 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Créer un utilisateur" />
+    <Head title="Create user" />
 
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
         <!-- Header -->
         <div class="flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Créer un utilisateur</h1>
+                <h1 class="text-2xl font-semibold">Create user</h1>
                 <p class="text-sm text-muted-foreground">
-                    Ajouter un nouveau compte propriétaire d'entreprise
+                    Add a new business owner account
                 </p>
             </div>
             <Button as-child variant="outline">
-                <Link :href="index.url()">Retour</Link>
+                <Link :href="index.url()">Back</Link>
             </Button>
         </div>
 
@@ -52,15 +52,15 @@ const submit = () => {
         <form @submit.prevent="submit" class="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Informations de l'utilisateur</CardTitle>
+                    <CardTitle>User information</CardTitle>
                     <CardDescription>
-                        Entrez les détails du nouvel utilisateur
+                        Enter the new user's details
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Name -->
                     <div class="space-y-2">
-                        <Label for="name">Nom complet *</Label>
+                        <Label for="name">Full name *</Label>
                         <Input
                             id="name"
                             v-model="form.name"
@@ -91,7 +91,7 @@ const submit = () => {
 
                     <!-- Phone -->
                     <div class="space-y-2">
-                        <Label for="phone">Téléphone</Label>
+                        <Label for="phone">Phone</Label>
                         <Input
                             id="phone"
                             v-model="form.phone"
@@ -102,12 +102,12 @@ const submit = () => {
                         <p v-if="form.errors.phone" class="text-sm text-destructive">
                             {{ form.errors.phone }}
                         </p>
-                        <p class="text-xs text-muted-foreground">Optionnel</p>
+                        <p class="text-xs text-muted-foreground">Optional</p>
                     </div>
 
                     <!-- Password -->
                     <div class="space-y-2">
-                        <Label for="password">Mot de passe *</Label>
+                        <Label for="password">Password *</Label>
                         <Input
                             id="password"
                             v-model="form.password"
@@ -119,13 +119,13 @@ const submit = () => {
                             {{ form.errors.password }}
                         </p>
                         <p class="text-xs text-muted-foreground">
-                            Minimum 8 caractères
+                            Minimum 8 characters
                         </p>
                     </div>
 
                     <!-- Password Confirmation -->
                     <div class="space-y-2">
-                        <Label for="password_confirmation">Confirmer le mot de passe *</Label>
+                        <Label for="password_confirmation">Confirm password *</Label>
                         <Input
                             id="password_confirmation"
                             v-model="form.password_confirmation"
@@ -139,10 +139,10 @@ const submit = () => {
             <!-- Actions -->
             <div class="flex gap-3">
                 <Button type="submit" :disabled="form.processing">
-                    {{ form.processing ? 'Création...' : 'Créer l\'utilisateur' }}
+                    {{ form.processing ? 'Creating...' : 'Create user' }}
                 </Button>
                 <Button type="button" variant="outline" as-child>
-                    <Link :href="index.url()">Annuler</Link>
+                    <Link :href="index.url()">Cancel</Link>
                 </Button>
             </div>
         </form>
